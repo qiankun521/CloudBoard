@@ -1,0 +1,11 @@
+@import '../styles/Flex.scss';
+.container{
+    width: 100vw;
+    height: 100vh;
+    background-color: #f3f3f5;
+    flex-direction: column;
+    @extend %flex;
+    p{
+        font-size: 1rem;
+    }
+}

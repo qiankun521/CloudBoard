@@ -1,0 +1,26 @@
+@import '../../assets/styles/Scroll.scss';
+
+%flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    flex: {
+        grow: 1;
+        shrink: 1;
+    }
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    overflow-y: auto;
+
+    .recently {
+        padding: 0 40px;
+        height: 200px;
+        display: flex;
+        flex-direction: column;
+    }
+}

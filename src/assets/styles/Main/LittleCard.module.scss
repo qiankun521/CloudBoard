@@ -1,0 +1,27 @@
+@import "../../../assets/styles/Flex.scss";
+
+.cardContainer {
+    @extend %flex;
+    width: 185px;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    .card {
+        @extend %flex;
+        width: 185px;
+        height: 124px;
+        margin-bottom: 6px;
+        background-color: #f7f7f9;
+        border-radius: 10px;
+        img{
+            &:hover{
+                cursor: pointer;
+                transform: scale(1.05);
+            }
+        }
+    }
+    p{
+        font-size: 0.8rem;
+    }
+}

@@ -1,0 +1,12 @@
+/* 隐藏滚动条 */
+%container {
+  -ms-overflow-style: none;
+  /* IE 和 Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* 针对 Webkit 浏览器（如 Chrome 和 Safari） */
+%container::-webkit-scrollbar {
+  display: none;
+}
