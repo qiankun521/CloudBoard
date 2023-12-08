@@ -36,28 +36,7 @@ const WhiteBoard = observer(() => {
             scroll.removeEventListener('scroll', handleScroll);
         }
     }, []);
-    const handleDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-        switch (actionType.current) {
-            case 'select':
-                if (e.target === stageRef.current) {
-                    store.boardElementStore.changeActiveToStatic();
-                } else if (isUuidV4(e.target.id())) {//确保元素是自己生成的
-                    store.boardElementStore.changeActiveToStatic(undefined, e.target.id());
-                    store.boardElementStore.changeStaticToActive(e.target.id());
-                }
-                break;
-            case 'delete':
-                break;
-            case 'rect':
-                break;
-            case 'circle':
-                break;
-            case 'triggle':
-                break;
-            default:
-                break;
-        }
-    }
+    
     const addStatic = () => {
         for (let i = 0; i < 100; i++) {
             const tmp = new konva.Rect();
@@ -68,7 +47,10 @@ const WhiteBoard = observer(() => {
             tmp.height(Math.random() * 100)
             tmp.id(id);
             tmp.fill('blue');
+            tmp.draggable(true);
             store.boardElementStore.addStatic(id, tmp);
+            store.boardElementStore.changeStaticToActive(id);//WTF 这里必须要先将静态元素转换到动态，
+            store.boardElementStore.changeActiveToStatic();//再转换回去才能做到动态元素的拖拽
         }
     }
     return (
@@ -79,14 +61,12 @@ const WhiteBoard = observer(() => {
                     ref={stageRef}
                     width={window.innerWidth}
                     height={window.innerHeight}
-                    onMouseDown={handleDown}
-                    onTouchStart={handleDown}
                 >
                     <Layer ref={staticLayerRef}>
                         <StaticLayer></StaticLayer>
                     </Layer>
                     <Layer ref={activeLayerRef}>
-                        <ActiveLayer scrollRef={scrollRef.current}></ActiveLayer>
+                        <ActiveLayer scrollRef={scrollRef.current} stageRef={stageRef.current}></ActiveLayer>
                     </Layer>
                 </Stage>
             </div>

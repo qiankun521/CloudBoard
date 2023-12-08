@@ -6,26 +6,35 @@ declare type UserInfo = {
     email?: string,
     phone?: string,
 }
-declare type SingleBoard={
-    id?:string,
-    name?:string,
-    owner?:string,
-    src?:string,
-    members?:string[],
-    lastEdit?:string,
+declare type SingleBoard = {
+    id?: string,
+    name?: string,
+    owner?: string,
+    src?: string,
+    members?: string[],
+    lastEdit?: string,
 }
 declare type WhiteBoard = {
-    all?:{
-        [id:string]:SingleBoard
+    all?: {
+        [id: string]: SingleBoard
     }
-    mine?:{
-        [id:string]:SingleBoard
+    mine?: {
+        [id: string]: SingleBoard
     }
-    others?:{
-        [id:string]:SingleBoard
+    others?: {
+        [id: string]: SingleBoard
     }
-    collection?:{
-        [id:string]:SingleBoard
+    collection?: {
+        [id: string]: SingleBoard
     }
 }
-export { UserInfo, WhiteBoard,SingleBoard }
+declare type Status =
+    'select' |//正在选择元素
+    'delete' |//正在删除元素
+    'edit' |//正在编辑元素
+    //创建元素
+    'rect' |
+    'circle' |
+    'line' |
+    'text';
+export { UserInfo, WhiteBoard, SingleBoard, Status }

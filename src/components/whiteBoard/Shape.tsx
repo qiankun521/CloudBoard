@@ -1,11 +1,19 @@
 import konva from 'konva';
 import { Rect } from 'react-konva';
-
-const Shape = ({ item }: { item: [string, konva.Shape] }) => {
+import { observer } from "mobx-react-lite";
+import { useContext } from 'react';
+import { storeContext } from '../../stores/storeContext';
+import throttle from '../../utils/throttle';
+const Shape = observer(({ item }: { item: [string, konva.Shape] }) => {
     let element;
+    const store = useContext(storeContext);
+    const handleMove = (e: konva.KonvaEventObject<DragEvent>) => {
+        store.boardElementStore.updateActive(e.target.id(), new konva.Rect(e.target.attrs));
+    }
+    const throttleHandleMove = throttle(handleMove, 100);
     switch (item[1].getClassName()) {
         case 'Rect':
-            element = <Rect {...item[1].attrs}></Rect>
+            element = <Rect {...item[1].getAttrs()} draggable onDragEnd={handleMove} onDragMove={throttleHandleMove}></Rect>
             break;
         default:
             element = null;
@@ -16,5 +24,5 @@ const Shape = ({ item }: { item: [string, konva.Shape] }) => {
             {element}
         </>
     )
-}
+})
 export default Shape;
