@@ -4,7 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
 import throttle from '../../utils/throttle';
-const Shape = observer(({ item }: { item: [string, konva.Shape] }) => {
+const Shape = ({ item }: { item: [string, konva.Shape] }) => {
     let element;
     const store = useContext(storeContext);
     const handleMove = (e: konva.KonvaEventObject<DragEvent>) => {
@@ -13,7 +13,7 @@ const Shape = observer(({ item }: { item: [string, konva.Shape] }) => {
     const throttleHandleMove = throttle(handleMove, 100);
     switch (item[1].getClassName()) {
         case 'Rect':
-            element = <Rect {...item[1].getAttrs()} draggable onDragEnd={handleMove} onDragMove={throttleHandleMove}></Rect>
+            element = <Rect {...item[1].getAttrs()} draggable onDragEnd={throttleHandleMove} onDragMove={throttleHandleMove}></Rect>
             break;
         default:
             element = null;
@@ -24,5 +24,5 @@ const Shape = observer(({ item }: { item: [string, konva.Shape] }) => {
             {element}
         </>
     )
-})
+}
 export default Shape;

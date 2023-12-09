@@ -7,6 +7,7 @@ import { observer } from "mobx-react-lite";
 import { KonvaEventObject } from 'konva/lib/Node';
 import isUuidV4 from '../../utils/isUuidv4';
 import throttle from '../../utils/throttle';
+import { v4 } from 'uuid';
 const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: konva.Stage | null }) => {
     const store = useContext(storeContext);
     const transformerRef = useRef<konva.Transformer>(null);
@@ -26,8 +27,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 clientY = touch.clientY;
             }
             if (scrollRef) {
-                clientX = clientX as number + scrollRef?.scrollLeft;
-                clientY = clientY as number + scrollRef?.scrollTop;
+                clientX = (clientX as number + scrollRef?.scrollLeft) * store.boardElementStore.scaleX;
+                clientY = (clientY as number + scrollRef?.scrollTop) * store.boardElementStore.scaleY;
             }
             switch (store.boardElementStore.status) {
                 case 'select':
@@ -45,10 +46,22 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     }
                     break;
                 case 'move':
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.changeActiveToStatic();
+                        transformer.nodes([]);
+                        store.boardElementStore.updateSelect({ x: (clientX as number), y: clientY as number });
+                        store.boardElementStore.moveFlag = true;
+                    }
                     break;
+                case 'rect':
+                    e.evt.preventDefault();
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.updateSelect({ x: (clientX as number), y: clientY as number });
+                    }
             }
         }
         const handleMove = (e: MouseEvent | TouchEvent) => {
+            if (store.boardElementStore.status === 'move' && !store.boardElementStore.moveFlag) return;
             let clientX, clientY;//获取鼠标或者触摸点的坐标
             if (e.type.startsWith('mouse')) {
                 // MouseEvent处理
@@ -67,17 +80,29 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
             switch (store.boardElementStore.status) {
                 case 'select':
                     if (store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
-                        store.boardElementStore.updateSelect(undefined, { x: (clientX as number), y: clientY as number });
+                        store.boardElementStore.updateSelect(undefined, { x: clientX as number, y: clientY as number });
                     }
                     break;
                 case 'move':
-
+                    if (!store.boardElementStore.moveFlag) return;
+                    if (scrollRef && store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
+                        scrollRef.scrollTop -= ((clientY as number) - store.boardElementStore.selectElement.y) / 1.5;
+                        scrollRef.scrollLeft -= ((clientX as number) - store.boardElementStore.selectElement.x) / 1.5;
+                        store.boardElementStore.updateSelect({ x: clientX as number, y: clientY as number });
+                    }
+                    break;
+                case 'rect':
+                    if (store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
+                        store.boardElementStore.updateSelect(undefined, { x: clientX as number, y: clientY as number });
+                    }
+                    break;
             }
         }
+        const throttleHandleMove = throttle(handleMove, 30);
         const handleUp = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
             switch (store.boardElementStore.status) {
                 case 'select':
-                    if ( transformer.nodes().length === 0) {
+                    if (transformer.nodes().length === 0) {
                         const selectBox = transformer.getStage()?.find('#selectBox')[0].getClientRect();
                         const selected: konva.Node[] = [];
                         transformer.getStage()?.find('Shape').forEach((item) => {
@@ -89,23 +114,41 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
                     }
                     break;
+                case 'move':
+                    store.boardElementStore.moveFlag = false;
+                    break;
+                case 'rect':
+                    const id = v4();
+                    const rect = new konva.Rect({
+                        x: store.boardElementStore.selectElement.x,
+                        y: store.boardElementStore.selectElement.y,
+                        width: store.boardElementStore.selectElement.width,
+                        height: store.boardElementStore.selectElement.height,
+                        id: id,
+                        fill: 'blue',
+                        draggable: true
+                    });
+                    store.boardElementStore.addStatic(id, rect);
+                    store.boardElementStore.changeStaticToActive(id);
+                    transformer.nodes([rect]);
+                    store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
+                    break;
             }
         }
         if (stageRef) {
             stageRef.on('mousedown touchstart', handleDown);
             stageRef.on('mouseup touchend mouseleave', handleUp);
         }
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('mousemove', throttleHandleMove);
+        window.addEventListener('touchmove', throttleHandleMove);
         return () => {
             transformer.getStage()?.off('mousedown');
             transformer.getStage()?.off('touchstart');
-            transformer.getStage()?.off('mouseout');
+            transformer.getStage()?.off('mouseleave');
             transformer.getStage()?.off('mouseup');
             transformer.getStage()?.off('touchend');
-            window.removeEventListener('mousemove', handleMove);
-            window.removeEventListener('touchmove', handleMove);
-
+            window.removeEventListener('mousemove', throttleHandleMove);
+            window.removeEventListener('touchmove', throttleHandleMove);
         }
     }, [scrollRef, stageRef, store.boardElementStore]);
 

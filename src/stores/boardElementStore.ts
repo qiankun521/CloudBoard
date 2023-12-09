@@ -2,6 +2,8 @@ import { makeAutoObservable } from "mobx";
 import { Store } from "./index";
 import konva from 'konva';
 import { Status } from '../../global'
+import { Transformer } from 'react-konva';
+import { useRef } from "react";
 type Element = {
     [key: string]: konva.Shape
 }
@@ -16,6 +18,9 @@ class BoardElementStore {
         height: 0
     }//框选框
     status: Status = 'select'//当前状态
+    moveFlag: boolean = false//是否移动,解决mousemove在不想移动时也触发的问题
+    scaleX: number = 1//缩放比例
+    scaleY: number = 1//缩放比例
     constructor(rootStore: Store) {
         makeAutoObservable(this);
         this.rootStore = rootStore;
@@ -26,11 +31,13 @@ class BoardElementStore {
     get active() {
         return Object.entries(this.activeElement);
     }
-    get staticIds() {
-        return Object.keys(this.staticElement);
+    get staticIdSet() {
+        const set=new Set(Object.keys(this.staticElement));
+        return set;
     }
-    get activeIds() {
-        return Object.keys(this.activeElement);
+    get activeIdSet() {
+        const set=new Set(Object.keys(this.activeElement));
+        return set;
     }
     addStatic(id: string, element: konva.Shape) {
         this.staticElement[id] = element;
@@ -45,7 +52,6 @@ class BoardElementStore {
         this.staticElement[id] = element;
     }
     updateSelect(point?: { x: number, y: number }, wH?: { x: number, y: number }) {
-        
         if (point && !wH) {
             this.selectElement = {
                 ...this.selectElement,
@@ -66,35 +72,45 @@ class BoardElementStore {
                 height: 0
             }
         }
-        
+
 
     }
-    changeActiveToStatic(id?: string | string[]) {//id为转换的id，为undefined时，全部转换,id2为不转换的id
+    changeActiveToStatic(id?: string | string[]) {//id为转换的id，为undefined时，全部转换
         if (id && typeof id === "string") {
-            this.staticElement[id] = this.activeElement[id].clone();
+            this.staticElement[id] = this.activeElement[id];
             delete this.activeElement[id];
         } else if (id && typeof id === "object") {
             id.forEach((item) => {
-                this.staticElement[item] = this.activeElement[item].clone();
+                this.staticElement[item] = this.activeElement[item];
                 delete this.activeElement[item];
             })
         }
+        // else{
+        //     Object.entries(this.activeElement).forEach(([key,value])=>{
+        //         this.staticElement[key] = value;
+        //         delete this.activeElement[key];
+        //     })
+        // }
     }
     changeStaticToActive(id: string | string[]) {
         if (typeof id === "string") {
             if (!this.staticElement[id]) return;
-            this.activeElement[id] = this.staticElement[id].clone();
+            this.activeElement[id] = this.staticElement[id];
             delete this.staticElement[id];
         } else {
             id.forEach((item) => {
                 if (!this.staticElement[item]) return;
-                this.activeElement[item] = this.staticElement[item].clone();
+                this.activeElement[item] = this.staticElement[item];
                 delete this.staticElement[item];
             })
         }
     }
     changeStatus(status: Status) {
         this.status = status;
+    }
+    updateScale(scaleX: number, scaleY: number) {
+        this.scaleX = scaleX;
+        this.scaleY = scaleY;
     }
 }
 export default BoardElementStore;

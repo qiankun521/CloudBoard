@@ -19,7 +19,6 @@ const WhiteBoard = observer(() => {
     const stageRef = useRef<konva.Stage>(null);//舞台ref
     const activeLayerRef = useRef<konva.Layer>(null);//动态层ref
     const staticLayerRef = useRef<konva.Layer>(null);//静态层ref
-    const actionType = useRef<ActionType>('select');
     const handleScroll = () => {
         if (scrollRef.current && stageRef.current) {
             const dx = scrollRef.current.scrollLeft;
@@ -33,12 +32,13 @@ const WhiteBoard = observer(() => {
     useEffect(() => {
         if (!scrollRef.current || !stageRef.current) return;
         let scroll = scrollRef.current;
+        scroll.scrollLeft = 5000;
+        scroll.scrollTop = 5000;
         scroll.addEventListener('scroll', handleScroll);
         return () => {
             scroll.removeEventListener('scroll', handleScroll);
         }
     }, []);
-
     const addStatic = () => {
         for (let i = 0; i < 100; i++) {
             const tmp = new konva.Rect();
@@ -72,10 +72,9 @@ const WhiteBoard = observer(() => {
                     <Layer ref={activeLayerRef}>
                         <ActiveLayer scrollRef={scrollRef.current} stageRef={stageRef.current}></ActiveLayer>
                     </Layer>
-                    
                 </Stage>
             </div>
-            <Sidebar></Sidebar>
+            <Sidebar scrollRef={scrollRef.current} stageRef={stageRef.current}></Sidebar>
             <button onClick={addStatic}>添加静态</button>
 
         </main>
