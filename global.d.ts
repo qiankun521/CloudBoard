@@ -30,6 +30,7 @@ declare type WhiteBoard = {
 }
 declare type Status =
     'select' |//正在选择元素
+    'move' |//正在移动画布
     'delete' |//正在删除元素
     'edit' |//正在编辑元素
     //创建元素

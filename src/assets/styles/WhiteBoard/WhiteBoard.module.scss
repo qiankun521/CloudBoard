@@ -1,7 +1,11 @@
+@import '../Scroll.scss';
+
 .scroll {
     width: 100vw;
     height: 100vh;
     overflow: auto;
+    position: relative;
+    @extend %container;
 
     .largeContainer {
         width: 10000px;

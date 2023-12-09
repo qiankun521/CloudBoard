@@ -9,6 +9,8 @@ import ActiveLayer from './ActiveLayer';
 import { v4 } from 'uuid';
 import { observer } from "mobx-react-lite"
 import isUuidV4 from '../../utils/isUuidv4';
+import TopLayer from './TopLayer';
+import Sidebar from './Sidebar';
 type Create = 'rect' | 'circle' | 'triggle';
 type ActionType = 'delete' | 'select' | Create;
 const WhiteBoard = observer(() => {
@@ -36,7 +38,7 @@ const WhiteBoard = observer(() => {
             scroll.removeEventListener('scroll', handleScroll);
         }
     }, []);
-    
+
     const addStatic = () => {
         for (let i = 0; i < 100; i++) {
             const tmp = new konva.Rect();
@@ -49,6 +51,7 @@ const WhiteBoard = observer(() => {
             tmp.fill('blue');
             tmp.draggable(true);
             store.boardElementStore.addStatic(id, tmp);
+            // console.log(tmp.x(), tmp.y());
             store.boardElementStore.changeStaticToActive(id);//WTF 这里必须要先将静态元素转换到动态，
             store.boardElementStore.changeActiveToStatic();//再转换回去才能做到动态元素的拖拽
         }
@@ -62,15 +65,17 @@ const WhiteBoard = observer(() => {
                     width={window.innerWidth}
                     height={window.innerHeight}
                 >
+                    <TopLayer></TopLayer>
                     <Layer ref={staticLayerRef}>
                         <StaticLayer></StaticLayer>
                     </Layer>
                     <Layer ref={activeLayerRef}>
                         <ActiveLayer scrollRef={scrollRef.current} stageRef={stageRef.current}></ActiveLayer>
                     </Layer>
+                    
                 </Stage>
             </div>
-
+            <Sidebar></Sidebar>
             <button onClick={addStatic}>添加静态</button>
 
         </main>

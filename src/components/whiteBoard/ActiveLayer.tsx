@@ -13,24 +13,101 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
     useEffect(() => {
         if (!transformerRef.current) return;
         const transformer = transformerRef.current;
-        if (stageRef)
-            stageRef.on('mousedown', (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
-                if (e.target === transformer.getStage()) {
-                    store.boardElementStore.changeActiveToStatic();
-                    transformer.nodes([]);
-                } else if (e.target.id() !== "" && e.target.id() && isUuidV4(e.target.id())) {//确保元素是自己生成的
-                    if (store.boardElementStore.staticElement[e.target.id()]) {
-                        store.boardElementStore.changeStaticToActive(e.target.id());
+        const handleDown = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+            let clientX, clientY;//获取鼠标或者触摸点的坐标
+            if (e.evt.type.startsWith('mouse')) {
+                // MouseEvent处理
+                clientX = (e.evt as MouseEvent).clientX;
+                clientY = (e.evt as MouseEvent).clientY;
+            } else if (e.evt.type.startsWith('touch')) {
+                // TouchEvent处理
+                const touch = (e.evt as TouchEvent).changedTouches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            }
+            if (scrollRef) {
+                clientX = clientX as number + scrollRef?.scrollLeft;
+                clientY = clientY as number + scrollRef?.scrollTop;
+            }
+            switch (store.boardElementStore.status) {
+                case 'select':
+                    e.evt.preventDefault();
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.changeActiveToStatic();
+                        transformer.nodes([]);
+                        store.boardElementStore.updateSelect({ x: (clientX as number), y: clientY as number });
+                    } else if (e.target.id() !== "" && e.target.id() && isUuidV4(e.target.id()) && transformer.nodes().length <= 1) {//确保元素是自己生成的
+                        if (store.boardElementStore.staticElement[e.target.id()]) {
+                            store.boardElementStore.changeStaticToActive(e.target.id());
+                        }
+                        transformer.nodes([e.target]);
+                        transformer.getLayer()?.batchDraw();
                     }
-                    transformer.nodes([e.target]);
-                    transformer.getLayer()?.batchDraw();
-                    console.log(transformer.getNodes());
-                }
-            });
+                    break;
+                case 'move':
+                    break;
+            }
+        }
+        const handleMove = (e: MouseEvent | TouchEvent) => {
+            let clientX, clientY;//获取鼠标或者触摸点的坐标
+            if (e.type.startsWith('mouse')) {
+                // MouseEvent处理
+                clientX = (e as MouseEvent).clientX;
+                clientY = (e as MouseEvent).clientY;
+            } else if (e.type.startsWith('touch')) {
+                // TouchEvent处理
+                const touch = (e as TouchEvent).changedTouches[0];
+                clientX = touch.clientX;
+                clientY = touch.clientY;
+            }
+            if (scrollRef) {
+                clientX = clientX as number + scrollRef?.scrollLeft;
+                clientY = clientY as number + scrollRef?.scrollTop;
+            }
+            switch (store.boardElementStore.status) {
+                case 'select':
+                    if (store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
+                        store.boardElementStore.updateSelect(undefined, { x: (clientX as number), y: clientY as number });
+                    }
+                    break;
+                case 'move':
+
+            }
+        }
+        const handleUp = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+            switch (store.boardElementStore.status) {
+                case 'select':
+                    if ( transformer.nodes().length === 0) {
+                        const selectBox = transformer.getStage()?.find('#selectBox')[0].getClientRect();
+                        const selected: konva.Node[] = [];
+                        transformer.getStage()?.find('Shape').forEach((item) => {
+                            if (isUuidV4(item.id()) && selectBox && konva.Util.haveIntersection(selectBox, item.getClientRect())) {
+                                selected.push(item);
+                            }
+                        });
+                        transformer.nodes(selected);
+                        store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
+                    }
+                    break;
+            }
+        }
+        if (stageRef) {
+            stageRef.on('mousedown touchstart', handleDown);
+            stageRef.on('mouseup touchend mouseleave', handleUp);
+        }
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove);
         return () => {
             transformer.getStage()?.off('mousedown');
+            transformer.getStage()?.off('touchstart');
+            transformer.getStage()?.off('mouseout');
+            transformer.getStage()?.off('mouseup');
+            transformer.getStage()?.off('touchend');
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('touchmove', handleMove);
+
         }
-    }, [stageRef, store.boardElementStore]);
+    }, [scrollRef, stageRef, store.boardElementStore]);
 
     const changeToAbsolute = () => {
         if (!scrollRef || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
@@ -41,15 +118,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
     const throttleChangeToAbsolute = throttle(changeToAbsolute, 100);
     return (
         <>
-            <Rect
-                x={store.boardElementStore.selectElement.x()}
-                y={store.boardElementStore.selectElement.y()}
-                width={store.boardElementStore.selectElement.width()}
-                height={store.boardElementStore.selectElement.height()}
-                fill='rgba(0,0,0,0)'
-                stroke='black'
-                strokeWidth={1}
-            ></Rect>
             {store.boardElementStore.active.length > 0 &&
                 store.boardElementStore.active.map((item) =>
                     <Shape item={item} key={item[0]}></Shape>
