@@ -169,3 +169,10 @@
         background-color: #f5f3ff;
     }
 }
+.disabled {
+    color:#f3f3f4;
+    background-color: #f0f0f1;
+    &:hover {
+        cursor: not-allowed;
+    }
+}

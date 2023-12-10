@@ -32,10 +32,10 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
             store.boardElementStore.changeStatus('select');
             setSelect('select');
         } else {
-            store.boardElementStore.changeStatus('select');
+            store.boardElementStore.changeStatus('move');
             store.boardElementStore.updateCreate({ x: 0, y: 0 }, { x: 0, y: 0 });
             store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
-            setSelect('select');
+            setSelect('move');
         }
     }
     const handleStageScaleGrow = () => {
@@ -207,7 +207,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                 </div>
             </aside>
             <aside className={styles.bottomLeft}>
-                <div className={styles.single}>
+                <div className={`${styles.single}`}>
                     <Popover
                         content={
                             <div

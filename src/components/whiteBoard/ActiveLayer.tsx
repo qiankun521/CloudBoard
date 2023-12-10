@@ -167,7 +167,10 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         draggable: true
                     });
                     store.boardElementStore.updateCreate();
-                    if (rect.width() <= 1 || rect.height() <= 1) return;
+                    if (Math.abs(rect.width()) === Math.abs(rect.x()) || Math.abs(rect.y()) === Math.abs(rect.height()) || Math.abs(rect.width()) <= 1 || Math.abs(rect.height()) <= 1) {
+                        return;
+                    }
+                    store.boardElementStore.updateCreate();
                     store.boardElementStore.addStatic(id, rect);
                     store.boardElementStore.changeStaticToActive(id);
                     transformer.nodes([rect]);
@@ -187,11 +190,20 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         stroke: 'black',
                         draggable: true
                     });
+                    
+                    if (circle.radius() <= 1||store.boardElementStore.createElement.y===0||store.boardElementStore.createElement.x===0) {
+                        store.boardElementStore.updateCreate();
+                        return;
+                    }
                     store.boardElementStore.updateCreate();
-                    if (circle.radius() <= 1) return;
                     store.boardElementStore.addStatic(circleId, circle);
                     store.boardElementStore.changeStaticToActive(circleId);
                     transformer.nodes([circle]);
+                    store.boardElementStore.undoRedoStack.push({
+                        type: 'create',
+                        id: circleId,
+                        element: store.boardElementStore.activeElement[circleId].clone()
+                    })
                     break;
                 case 'line':
                     const lineId = v4();
@@ -207,6 +219,11 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(lineId, line);
                     store.boardElementStore.changeStaticToActive(lineId);
                     transformer.nodes([line]);
+                    store.boardElementStore.undoRedoStack.push({
+                        type: 'create',
+                        id: lineId,
+                        element: store.boardElementStore.activeElement[lineId].clone()
+                    })
                     break;
                 case 'Spline':
                     store.boardElementStore.createFlag = false;
@@ -226,7 +243,11 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(splineId, spline);
                     store.boardElementStore.changeStaticToActive(splineId);
                     transformer.nodes([spline]);
-
+                    store.boardElementStore.undoRedoStack.push({
+                        type: 'create',
+                        id: splineId,
+                        element: store.boardElementStore.activeElement[splineId].clone()
+                    })
                     break;
             }
         }
