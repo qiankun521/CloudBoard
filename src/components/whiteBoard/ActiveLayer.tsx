@@ -190,7 +190,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         stroke: 'black',
                         draggable: true
                     });
-                    
                     if (circle.radius() <= 1||store.boardElementStore.createElement.y===0||store.boardElementStore.createElement.x===0) {
                         store.boardElementStore.updateCreate();
                         return;

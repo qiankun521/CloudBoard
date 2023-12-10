@@ -7,14 +7,21 @@ import { SlCursorMove } from "react-icons/sl";
 import { CiCircleMinus, CiCirclePlus } from "react-icons/ci";
 import { LuRectangleHorizontal } from "react-icons/lu";
 import { FaRegCircle } from "react-icons/fa";
-import { IoRemoveOutline } from "react-icons/io5";
+import { IoPricetag, IoRemoveOutline } from "react-icons/io5";
 import { CiText } from "react-icons/ci";
 import { SiWire } from "react-icons/si";
 import { RiArrowGoBackFill, RiArrowGoForwardFill } from "react-icons/ri";
 import { IoIosArrowBack } from "react-icons/io";
+import { GoDownload } from "react-icons/go";
+import { SlPicture } from "react-icons/sl";
+import { IoIosCloudOutline } from "react-icons/io";
+import { IoChatboxOutline } from "react-icons/io5";
+import { PiMicrophoneStage } from "react-icons/pi";
+import { IoPersonAddOutline } from "react-icons/io5";
 import styles from '../../assets/styles/WhiteBoard/Sidebar.module.scss'
-import { Popover } from "antd";
+import { Avatar, Button, Popover, message } from "antd";
 import konva from 'konva';
+import download from 'downloadjs';
 import { Status } from "../../../global";
 const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: konva.Stage | null }) => {
     const store = useContext(storeContext);
@@ -49,6 +56,22 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
         stageRef?.scaleX(stageRef?.scaleX() - 0.01);
         stageRef?.scaleY(stageRef?.scaleY() - 0.01);
         store.boardElementStore.updateScale(stageRef?.scaleX() - 0.01 as number, stageRef?.scaleY() - 0.01 as number);
+    }
+    const handleDownloadJson = () => {
+        if (!stageRef) {
+            message.error('下载失败');
+            return;
+        }
+        const json = stageRef.toJSON();
+        download(JSON.stringify(json), 'whiteBoard.json', 'text/json');
+    }
+    const handleDownloadImage = () => {
+        if (!stageRef) {
+            message.error('下载失败');
+            return;
+        }
+        const dataURL = stageRef.toDataURL();
+        download(dataURL, 'whiteBoard.png', 'image/png');
     }
     return (
         <>
@@ -260,7 +283,103 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                 <div className={styles.text}>
                     白板名字
                 </div>
+                <div className={styles.single} onClick={handleDownloadJson}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                导出配置
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <GoDownload className={styles.icon} />
+                    </Popover>
+
+                </div>
+                <div className={styles.single} onClick={handleDownloadImage}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                导出图片
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <SlPicture className={styles.icon} />
+                    </Popover>
+                </div>
+                <div className={styles.single}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                云端保存
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <IoIosCloudOutline className={styles.icon} />
+                    </Popover>
+                </div>
             </aside>
+            <aside className={styles.topRight}>
+                <div className={styles.single}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                聊天
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <IoChatboxOutline className={styles.icon} />
+                    </Popover>
+                </div>
+                <div className={styles.single}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                语音
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <PiMicrophoneStage className={styles.icon} />
+                    </Popover>
+                </div>
+                <div className={styles.text}>
+                    <Avatar
+                        style={{ padding: '0' }}
+                    ></Avatar>
+                </div>
+                <div className={styles.button}>
+                    <div className={styles.icon}>
+                        <div><IoPersonAddOutline /></div>
+                        <p>共享</p>
+                    </div>
+
+                </div>
+            </aside>
+
         </>
     )
 });
