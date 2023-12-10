@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import { storeContext } from '../../stores/storeContext';
 import { RxCursorArrow } from "react-icons/rx";
 import { SlCursorMove } from "react-icons/sl";
@@ -8,6 +9,9 @@ import { LuRectangleHorizontal } from "react-icons/lu";
 import { FaRegCircle } from "react-icons/fa";
 import { IoRemoveOutline } from "react-icons/io5";
 import { CiText } from "react-icons/ci";
+import { SiWire } from "react-icons/si";
+import { RiArrowGoBackFill, RiArrowGoForwardFill } from "react-icons/ri";
+import { IoIosArrowBack } from "react-icons/io";
 import styles from '../../assets/styles/WhiteBoard/Sidebar.module.scss'
 import { Popover } from "antd";
 import konva from 'konva';
@@ -15,17 +19,22 @@ import { Status } from "../../../global";
 const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: konva.Stage | null }) => {
     const store = useContext(storeContext);
     const [select, setSelect] = useState<Status>(store.boardElementStore.status);
+    const navigate = useNavigate();
     const changeBetweenSelectAndMove = () => {
         if (store.boardElementStore.status === 'select') {
             store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
+            store.boardElementStore.updateCreate({ x: 0, y: 0 }, { x: 0, y: 0 });
             store.boardElementStore.changeStatus('move');
             setSelect('move');
         } else if (store.boardElementStore.status === 'move') {
             store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
+            store.boardElementStore.updateCreate({ x: 0, y: 0 }, { x: 0, y: 0 });
             store.boardElementStore.changeStatus('select');
             setSelect('select');
-        }else{
+        } else {
             store.boardElementStore.changeStatus('select');
+            store.boardElementStore.updateCreate({ x: 0, y: 0 }, { x: 0, y: 0 });
+            store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
             setSelect('select');
         }
     }
@@ -90,6 +99,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                     onClick={() => {
                         setSelect('rect');
                         store.boardElementStore.changeStatus('rect');
+
                     }}
                 >
                     <Popover
@@ -152,6 +162,28 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                     </Popover>
                 </div>
                 <div
+                    className={`${styles.single} ${select === 'Spline' && styles.active}`}
+                    onClick={() => {
+                        setSelect('Spline');
+                        store.boardElementStore.changeStatus('Spline');
+                    }}
+                >
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                曲线
+                            </div>
+                        }
+                        placement="right"
+                    >
+                        <SiWire className={styles.icon} />
+                    </Popover>
+                </div>
+                <div
                     className={`${styles.single} ${select === 'text' && styles.active}`}
                     onClick={() => {
                         setSelect('text');
@@ -172,6 +204,61 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                     >
                         <CiText className={styles.icon} />
                     </Popover>
+                </div>
+            </aside>
+            <aside className={styles.bottomLeft}>
+                <div className={styles.single}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                回退
+                            </div>
+                        }
+                        placement="top"
+                    >
+                        <RiArrowGoBackFill className={styles.icon} />
+                    </Popover>
+                </div>
+                <div className={styles.single}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                前进
+                            </div>
+                        }
+                        placement="top"
+                    >
+                        <RiArrowGoForwardFill className={styles.icon} />
+                    </Popover>
+                </div>
+            </aside>
+            <aside className={styles.topLeft}>
+                <div className={styles.single} onClick={() => navigate('/home')}>
+                    <Popover
+                        content={
+                            <div
+                                style={{
+                                    fontSize: '0.8rem'
+                                }}
+                            >
+                                返回主界面
+                            </div>
+                        }
+                        placement="bottom"
+                    >
+                        <IoIosArrowBack className={styles.icon} />
+                    </Popover>
+                </div>
+                <div className={styles.text}>
+                    白板名字
                 </div>
             </aside>
         </>

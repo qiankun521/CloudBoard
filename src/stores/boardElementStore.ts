@@ -2,13 +2,14 @@ import { makeAutoObservable } from "mobx";
 import { Store } from "./index";
 import konva from 'konva';
 import { Status } from '../../global'
-import { Transformer } from 'react-konva';
-import { useRef } from "react";
+import { UndoRedoElement } from '../../global'
 type Element = {
     [key: string]: konva.Shape
 }
 class BoardElementStore {
     rootStore: Store
+    undoRedoStack: UndoRedoElement[] = []//撤销重做栈
+    stackIndex: number = -1
     staticElement: Element = {}//静态层元素
     activeElement: Element = {}//动态层元素
     selectElement: { x: number, y: number, width: number, height: number } = {
@@ -17,8 +18,16 @@ class BoardElementStore {
         width: 0,
         height: 0
     }//框选框
+    createElement: { lastX: number, lastY: number, x: number, y: number } = {
+        lastX: 0,
+        lastY: 0,
+        x: 0,
+        y: 0
+    }//创建元素
+    createAdvancedElement: number[] = []
     status: Status = 'select'//当前状态
     moveFlag: boolean = false//是否移动,解决mousemove在不想移动时也触发的问题
+    createFlag: boolean = false//是否创建,解决mousemove在不想创建时也触发的问题,如曲线
     scaleX: number = 1//缩放比例
     scaleY: number = 1//缩放比例
     constructor(rootStore: Store) {
@@ -32,11 +41,11 @@ class BoardElementStore {
         return Object.entries(this.activeElement);
     }
     get staticIdSet() {
-        const set=new Set(Object.keys(this.staticElement));
+        const set = new Set(Object.keys(this.staticElement));
         return set;
     }
     get activeIdSet() {
-        const set=new Set(Object.keys(this.activeElement));
+        const set = new Set(Object.keys(this.activeElement));
         return set;
     }
     addStatic(id: string, element: konva.Shape) {
@@ -72,8 +81,44 @@ class BoardElementStore {
                 height: 0
             }
         }
-
-
+    }
+    updateCreate(last?: { x: number, y: number }, now?: { x: number, y: number }) {
+        if (last && now) {
+            this.createElement = {
+                ...this.createElement,
+                lastX: last.x,
+                lastY: last.y,
+                x: now.x,
+                y: now.y
+            }
+        }
+        else if (last && !now) {
+            this.createElement = {
+                ...this.createElement,
+                lastX: last.x,
+                lastY: last.y
+            }
+        } else if (now && !last) {
+            this.createElement = {
+                ...this.createElement,
+                x: now.x,
+                y: now.y
+            }
+        } else {
+            this.createElement = {
+                lastX: 0,
+                lastY: 0,
+                x: 0,
+                y: 0
+            }
+        }
+    }
+    updateCreateAdvanced(point?: number[]) {
+        if (point) {
+            this.createAdvancedElement.push(...point);
+        } else {
+            this.createAdvancedElement = [];
+        }
     }
     changeActiveToStatic(id?: string | string[]) {//id为转换的id，为undefined时，全部转换
         if (id && typeof id === "string") {

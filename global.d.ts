@@ -37,5 +37,11 @@ declare type Status =
     'rect' |
     'circle' |
     'line' |
+    'Spline' |
     'text';
-export { UserInfo, WhiteBoard, SingleBoard, Status }
+declare type UndoRedoElement = {
+    type: 'create' | 'delete' | 'update',
+    id: string,
+    element: konva.Shape
+}
+export { UserInfo, WhiteBoard, SingleBoard, Status, UndoRedoElement }

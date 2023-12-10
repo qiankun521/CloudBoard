@@ -11,8 +11,6 @@ import { observer } from "mobx-react-lite"
 import isUuidV4 from '../../utils/isUuidv4';
 import TopLayer from './TopLayer';
 import Sidebar from './Sidebar';
-type Create = 'rect' | 'circle' | 'triggle';
-type ActionType = 'delete' | 'select' | Create;
 const WhiteBoard = observer(() => {
     const store = useContext(storeContext);
     const scrollRef = useRef<HTMLDivElement>(null);//滚动容器ref
@@ -39,23 +37,6 @@ const WhiteBoard = observer(() => {
             scroll.removeEventListener('scroll', handleScroll);
         }
     }, []);
-    const addStatic = () => {
-        for (let i = 0; i < 100; i++) {
-            const tmp = new konva.Rect();
-            const id = v4();
-            tmp.x(Math.random() * 10000)
-            tmp.y(Math.random() * 10000)
-            tmp.width(Math.random() * 100)
-            tmp.height(Math.random() * 100)
-            tmp.id(id);
-            tmp.fill('blue');
-            tmp.draggable(true);
-            store.boardElementStore.addStatic(id, tmp);
-            // console.log(tmp.x(), tmp.y());
-            store.boardElementStore.changeStaticToActive(id);//WTF 这里必须要先将静态元素转换到动态，
-            store.boardElementStore.changeActiveToStatic();//再转换回去才能做到动态元素的拖拽
-        }
-    }
     return (
         <main className={styles.scroll} ref={scrollRef}>
             <div className={styles.largeContainer}>
@@ -75,8 +56,6 @@ const WhiteBoard = observer(() => {
                 </Stage>
             </div>
             <Sidebar scrollRef={scrollRef.current} stageRef={stageRef.current}></Sidebar>
-            <button onClick={addStatic}>添加静态</button>
-
         </main>
     )
 })

@@ -5,7 +5,7 @@
     height: 100vh;
     overflow: auto;
     position: relative;
-    //@extend %container;
+    @extend %container;
 
     .largeContainer {
         width: 10000px;

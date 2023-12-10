@@ -56,12 +56,34 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 case 'rect':
                     e.evt.preventDefault();
                     if (e.target === transformer.getStage()) {
-                        store.boardElementStore.updateSelect({ x: (clientX as number), y: clientY as number });
+                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
                     }
+                    break;
+                case 'circle':
+                    e.evt.preventDefault();
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
+                    }
+                    break;
+                case 'line':
+                    e.evt.preventDefault();
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
+                    }
+                    break;
+                case 'Spline':
+                    e.evt.preventDefault();
+                    if (e.target === transformer.getStage()) {
+                        store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
+                        store.boardElementStore.createFlag = true;
+                    }
+                    break;
+
             }
         }
         const handleMove = (e: MouseEvent | TouchEvent) => {
             if (store.boardElementStore.status === 'move' && !store.boardElementStore.moveFlag) return;
+            if (store.boardElementStore.status === 'Spline' && !store.boardElementStore.createFlag) return;
             let clientX, clientY;//获取鼠标或者触摸点的坐标
             if (e.type.startsWith('mouse')) {
                 // MouseEvent处理
@@ -84,7 +106,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     }
                     break;
                 case 'move':
-                    if (!store.boardElementStore.moveFlag) return;
                     if (scrollRef && store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
                         scrollRef.scrollTop -= ((clientY as number) - store.boardElementStore.selectElement.y) / 1.5;
                         scrollRef.scrollLeft -= ((clientX as number) - store.boardElementStore.selectElement.x) / 1.5;
@@ -92,10 +113,27 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     }
                     break;
                 case 'rect':
-                    if (store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
-                        store.boardElementStore.updateSelect(undefined, { x: clientX as number, y: clientY as number });
+                    if (store.boardElementStore.createElement.lastX !== 0 && store.boardElementStore.createElement.lastY !== 0) {
+                        store.boardElementStore.updateCreate(undefined, { x: clientX as number, y: clientY as number });
                     }
                     break;
+                case 'circle':
+                    if (store.boardElementStore.createElement.lastX !== 0 && store.boardElementStore.createElement.lastY !== 0) {
+                        store.boardElementStore.updateCreate(undefined, { x: clientX as number, y: clientY as number });
+                    }
+                    break;
+                case 'line':
+                    if (store.boardElementStore.createElement.lastX !== 0 && store.boardElementStore.createElement.lastY !== 0) {
+                        store.boardElementStore.updateCreate(undefined, { x: clientX as number, y: clientY as number });
+                    }
+                    break;
+                case 'Spline':
+                    const tmp = store.boardElementStore.createAdvancedElement;
+                    if (Math.abs((clientX as number) - tmp[tmp.length - 2]) + Math.abs((clientY as number) - tmp[tmp.length - 1]) > 3) {
+                        store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
+                    }
+                    break;
+
             }
         }
         const throttleHandleMove = throttle(handleMove, 30);
@@ -120,18 +158,75 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 case 'rect':
                     const id = v4();
                     const rect = new konva.Rect({
-                        x: store.boardElementStore.selectElement.x,
-                        y: store.boardElementStore.selectElement.y,
-                        width: store.boardElementStore.selectElement.width,
-                        height: store.boardElementStore.selectElement.height,
+                        x: store.boardElementStore.createElement.lastX,
+                        y: store.boardElementStore.createElement.lastY,
+                        width: store.boardElementStore.createElement.x - store.boardElementStore.createElement.lastX,
+                        height: store.boardElementStore.createElement.y - store.boardElementStore.createElement.lastY,
                         id: id,
-                        fill: 'blue',
+                        stroke: 'black',
                         draggable: true
                     });
+                    store.boardElementStore.updateCreate();
+                    if (rect.width() <= 1 || rect.height() <= 1) return;
                     store.boardElementStore.addStatic(id, rect);
                     store.boardElementStore.changeStaticToActive(id);
                     transformer.nodes([rect]);
-                    store.boardElementStore.updateSelect({ x: 0, y: 0 }, { x: 0, y: 0 });
+                    store.boardElementStore.undoRedoStack.push({
+                        type: 'create',
+                        id: id,
+                        element: store.boardElementStore.activeElement[id].clone()
+                    })
+                    break;
+                case 'circle':
+                    const circleId = v4();
+                    const circle = new konva.Circle({
+                        x: store.boardElementStore.createElement.lastX,
+                        y: store.boardElementStore.createElement.lastY,
+                        radius: Math.sqrt(Math.pow(store.boardElementStore.createElement.lastX - store.boardElementStore.createElement.x, 2) + Math.pow(store.boardElementStore.createElement.lastY - store.boardElementStore.createElement.y, 2)),
+                        id: circleId,
+                        stroke: 'black',
+                        draggable: true
+                    });
+                    store.boardElementStore.updateCreate();
+                    if (circle.radius() <= 1) return;
+                    store.boardElementStore.addStatic(circleId, circle);
+                    store.boardElementStore.changeStaticToActive(circleId);
+                    transformer.nodes([circle]);
+                    break;
+                case 'line':
+                    const lineId = v4();
+                    const line = new konva.Line({
+                        points: [store.boardElementStore.createElement.lastX, store.boardElementStore.createElement.lastY, store.boardElementStore.createElement.x, store.boardElementStore.createElement.y],
+                        id: lineId,
+                        stroke: 'black',
+                        hitStrokeWidth: 20,
+                        draggable: true
+                    });
+                    store.boardElementStore.updateCreate();
+                    if (Math.abs(line.points()[0] - line.points()[2]) < 1 || Math.abs(line.points()[1] - line.points()[3]) < 1) return;
+                    store.boardElementStore.addStatic(lineId, line);
+                    store.boardElementStore.changeStaticToActive(lineId);
+                    transformer.nodes([line]);
+                    break;
+                case 'Spline':
+                    store.boardElementStore.createFlag = false;
+                    const splineId = v4();
+                    const spline = new konva.Line({
+                        points: [...store.boardElementStore.createAdvancedElement],
+                        id: splineId,
+                        stroke: 'black',
+                        hitStrokeWidth: 20,
+                        draggable: true,
+                        tension: 1,
+                        lineCap: 'round',
+                        lineJoin: 'round'
+                    });
+                    store.boardElementStore.updateCreateAdvanced();
+                    if (spline.points().length < 4) return;
+                    store.boardElementStore.addStatic(splineId, spline);
+                    store.boardElementStore.changeStaticToActive(splineId);
+                    transformer.nodes([spline]);
+
                     break;
             }
         }
@@ -155,10 +250,25 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
     const changeToAbsolute = () => {
         if (!scrollRef || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
         transformerRef.current.getNodes().forEach((item) => {
-            store.boardElementStore.updateActive(item.id(), new konva.Rect().setAttrs(item.getAttrs()));
+            switch (item.getClassName()) {
+                case 'Rect':
+                    store.boardElementStore.updateActive(item.id(), new konva.Rect().setAttrs(item.getAttrs()));
+                    break;
+                case 'Circle':
+                    store.boardElementStore.updateActive(item.id(), new konva.Circle().setAttrs(item.getAttrs()));
+                    break;
+                case 'Line':
+                    store.boardElementStore.updateActive(item.id(), new konva.Line().setAttrs(item.getAttrs()));
+                    break;
+            }
+            store.boardElementStore.undoRedoStack.push({
+                type: 'update',
+                id: item.id(),
+                element: store.boardElementStore.staticElement[item.id()]
+            })
         });
     };
-    const throttleChangeToAbsolute = throttle(changeToAbsolute, 100);
+    const throttleChangeToAbsolute = throttle(changeToAbsolute, 200);
     return (
         <>
             {store.boardElementStore.active.length > 0 &&
@@ -167,7 +277,7 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 )
             }
             <Transformer ref={transformerRef}
-                onTransformEnd={throttleChangeToAbsolute} onTransform={throttleChangeToAbsolute}
+                onTransformEnd={throttleChangeToAbsolute}
             ></Transformer>
         </>
     );
