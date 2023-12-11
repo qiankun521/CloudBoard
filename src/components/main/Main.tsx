@@ -24,7 +24,7 @@ const Main = observer(() => {
     }
     const handleJoin = (e: MouseEvent) => {
         e.preventDefault();
-        if(!store.loginRegisterStore.islogged){
+        if (!store.loginRegisterStore.islogged) {
             store.modalStore.setShowLoginModal(true);
             message.error('请先登录');
             return;
@@ -32,7 +32,7 @@ const Main = observer(() => {
         store.modalStore.setShowJoinModal(true);
     }
     return (
-        <div className={styles.container}>
+        <main className={styles.container}>
             <div className={styles.top}>
                 <div className={styles.left}>
                     <h1>首页</h1>
@@ -46,13 +46,15 @@ const Main = observer(() => {
                     <Button className={styles.normalButton}>
                         <div className={styles.icon}>
                             <AiOutlineDownload style={{ fontSize: '1rem', verticalAlign: 'center' }}></AiOutlineDownload>
-                            下载客户端
+                            <div className={styles.title}>下载客户端</div>
+                            <div className={styles.shortTitle}>下载</div>
                         </div>
                     </Button>
                     <Button className={styles.normalButton} onClick={handleJoin}>
                         <div className={styles.icon}>
-                            <AiOutlineHdd style={{ fontSize: '1rem', verticalAlign: 'center' }}></AiOutlineHdd>
-                            通过共享链接加入白板
+                            <AiOutlineHdd style={{ fontSize: '1rem' }}></AiOutlineHdd>
+                            <div className={styles.title}>通过共享链接加入白板</div>
+                            <div className={styles.shortTitle}>加入</div>
                         </div>
                     </Button>
                 </div>
@@ -159,7 +161,7 @@ const Main = observer(() => {
             <div className={styles.collection}>
 
             </div>
-        </div>
+        </main>
     )
 })
 export default Main;

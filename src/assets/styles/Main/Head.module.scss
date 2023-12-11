@@ -57,6 +57,20 @@
                 color: black;
                 border-color: #d9d9d9;
             }
+
+            .icon {
+                
+            }
+
+            .title {
+                display: auto;
+            }
+
+            @media screen and (max-width: 450px) {
+                .title {
+                    display: none;
+                }
+            }
         }
 
         .icon {
