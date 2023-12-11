@@ -3,12 +3,10 @@ import { Store } from './index';
 class TipsStore {
     rootStore: Store
     tips: string[] = [
-        '111按住空格键可以拖动画布哦o(￣▽￣)ｄ',
-        '444按住Crtl键可以放缩画布哦o(￣▽￣)ｄ',
-        '222按住空格键可以拖动画布哦o(￣▽￣)ｄ',
-        '555按住Crtl键可以放缩画布哦o(￣▽￣)ｄ',
-        '333按住空格键可以拖动画布哦o(￣▽￣)ｄ',
-        '666按住Crtl键可以放缩画布哦o(￣▽￣)ｄ'
+        '画布右下角可以切换拖动模式',
+        '在左上角可以把画布保存为图片哦',
+        '可以通过右上角的按钮分享画布给小伙伴',
+        '画布上的元素可以拖动哦',
     ];
     constructor(rootStore: Store) {
         makeAutoObservable(this);

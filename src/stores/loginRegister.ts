@@ -148,8 +148,9 @@ class LoginRegisterStore {
             runInAction(() => {
                 this.whiteBoard.others = res[0].data;
                 this.whiteBoard.mine = res[1].data;
-                if (this.whiteBoard.mine) this.whiteBoard.all?.push(...this.whiteBoard.mine);
-                if (this.whiteBoard.others) this.whiteBoard.all?.push(...this.whiteBoard.others);
+                this.whiteBoard.all = [];
+                if (this.whiteBoard.mine) this.whiteBoard.all.push(...this.whiteBoard.mine);
+                if (this.whiteBoard.others) this.whiteBoard.all.push(...this.whiteBoard.others);
                 this.saveData();
                 console.log()
             })
