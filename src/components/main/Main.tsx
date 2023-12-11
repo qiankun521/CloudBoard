@@ -1,5 +1,5 @@
 import styles from '../../assets/styles/Main/Main.module.scss';
-import { Avatar, Button, Input } from 'antd';
+import { Avatar, Button, Input, message } from 'antd';
 import { observer } from 'mobx-react';
 import { storeContext } from '../../stores/storeContext';
 import { useContext, useState } from 'react';
@@ -22,6 +22,15 @@ const Main = observer(() => {
         e.preventDefault();
         store.modalStore.setShowLoginModal(true);
     }
+    const handleJoin = (e: MouseEvent) => {
+        e.preventDefault();
+        if(!store.loginRegisterStore.islogged){
+            store.modalStore.setShowLoginModal(true);
+            message.error('请先登录');
+            return;
+        }
+        store.modalStore.setShowJoinModal(true);
+    }
     return (
         <div className={styles.container}>
             <div className={styles.top}>
@@ -40,7 +49,7 @@ const Main = observer(() => {
                             下载客户端
                         </div>
                     </Button>
-                    <Button className={styles.normalButton}>
+                    <Button className={styles.normalButton} onClick={handleJoin}>
                         <div className={styles.icon}>
                             <AiOutlineHdd style={{ fontSize: '1rem', verticalAlign: 'center' }}></AiOutlineHdd>
                             通过共享链接加入白板

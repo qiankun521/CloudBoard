@@ -358,7 +358,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                                     fontSize: '0.8rem'
                                 }}
                             >
-                                语音
+                                模式
                             </div>
                         }
                         placement="bottom"

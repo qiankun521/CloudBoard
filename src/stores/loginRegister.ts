@@ -199,6 +199,7 @@ class LoginRegisterStore {
     createWhiteBoard(name?: string) {
         if (!this.info.token || !this.islogged) {
             message.error('未登录');
+            this.rootStore.modalStore.setShowLoginModal(true);
             return;
         }
         if (!name) name = '未命名白板';

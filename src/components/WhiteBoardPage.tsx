@@ -13,6 +13,7 @@ const WhiteBoardPage = observer(() => {
         setTimeout(() => {
             setLoaded(true);
         }, 2000);
+        //ws连接
     }, [boardId]);
     if (!loaded) return (
         <Loading></Loading>
