@@ -8,25 +8,18 @@ declare type UserInfo = {
 }
 declare type SingleBoard = {
     id?: string,
+    uuid?: string,
     name?: string,
-    owner?: string,
     src?: string,
-    members?: string[],
+    userId?: string,
+    membersID?: string[],
     lastEdit?: string,
 }
 declare type WhiteBoard = {
-    all?: {
-        [id: string]: SingleBoard
-    }
-    mine?: {
-        [id: string]: SingleBoard
-    }
-    others?: {
-        [id: string]: SingleBoard
-    }
-    collection?: {
-        [id: string]: SingleBoard
-    }
+    all?: SingleBoard[]
+    mine?: SingleBoard[]
+    others?: SingleBoard[]
+    collection?: SingleBoard[]
 }
 declare type Status =
     'select' |//正在选择元素

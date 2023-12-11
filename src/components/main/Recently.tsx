@@ -30,26 +30,26 @@ const Recently = observer(() => {
             </div>
             {
                 menu === 1 && (
-                    store.loginRegisterStore.islogged || Object.entries(store.loginRegisterStore.whiteBoard.all as WhiteBoard).length === 0 ?
+                    !store.loginRegisterStore.islogged || !store.loginRegisterStore.whiteBoard.all || store.loginRegisterStore.whiteBoard.all.length === 0 ?
                         <Empty style={{ marginTop: '2rem' }} description='这里空空如也' /> :
                         <MiddleCard
-                            {...store.loginRegisterStore.whiteBoard.all}
+                            data={store.loginRegisterStore.whiteBoard.all}
                         ></MiddleCard>
                 )}
             {
                 menu === 2 && (
-                    store.loginRegisterStore.islogged || Object.entries(store.loginRegisterStore.whiteBoard.mine as WhiteBoard).length === 0 ?
+                    !store.loginRegisterStore.islogged || !store.loginRegisterStore.whiteBoard.mine || store.loginRegisterStore.whiteBoard.mine.length === 0 ?
                         <Empty style={{ marginTop: '2rem' }} description='这里空空如也' /> :
                         <MiddleCard
-                            {...store.loginRegisterStore.whiteBoard.mine}
+                            data={store.loginRegisterStore.whiteBoard.mine}
                         ></MiddleCard>
                 )}
             {
                 menu === 3 && (
-                    store.loginRegisterStore.islogged || Object.entries(store.loginRegisterStore.whiteBoard.others as WhiteBoard).length === 0 ?
+                    !store.loginRegisterStore.islogged || !store.loginRegisterStore.whiteBoard.others || store.loginRegisterStore.whiteBoard.others.length === 0 ?
                         <Empty style={{ marginTop: '2rem' }} description='这里空空如也' /> :
                         <MiddleCard
-                            {...store.loginRegisterStore.whiteBoard.others}
+                            data={store.loginRegisterStore.whiteBoard.others}
                         ></MiddleCard>
                 )}
 

@@ -98,7 +98,7 @@ const LoginModal = observer(() => {
                                 name='username'
                                 rules={[{ required: true, message: '请输入邮箱/手机号!' }]}
                             >
-                                <Input className={styles.input} placeholder='邮箱/手机号'></Input>
+                                <Input className={styles.input} placeholder='邮箱/手机号' onChange={(e) => { setInfo({ email: e.target.value }) }}></Input>
                             </Form.Item>
                             {loginOption === '验证码登录' &&
                                 <Form.Item
@@ -106,7 +106,6 @@ const LoginModal = observer(() => {
                                     rules={[
                                         { required: true, message: '请输入验证码!' },
                                         { len: 6, message: '验证码长度为6位!' },
-                                        { type: 'number', message: '验证码必须为数字!' }
                                     ]}
                                 >
                                     <Input

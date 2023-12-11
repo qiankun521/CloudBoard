@@ -11,6 +11,7 @@ import { MouseEvent } from 'react';
 import LittleCard from './LittleCard';
 import { IoChatboxEllipsesOutline } from "react-icons/io5";
 import Recently from './Recently';
+import { create } from 'domain';
 const Main = observer(() => {
     const store = useContext(storeContext);
     const [classify, setClassify] = useState(1);
@@ -30,7 +31,7 @@ const Main = observer(() => {
                 <div className={styles.right}>
                     {
                         store.loginRegisterStore.islogged ?
-                            <Avatar icon={<AiOutlineUser></AiOutlineUser>}></Avatar> :
+                            <Avatar icon={<AiOutlineUser></AiOutlineUser>} onClick={() => store.loginRegisterStore.logout()}></Avatar> :
                             <Button type='primary' className={styles.loginButton} onClick={handleLogin}>登录/注册</Button>
                     }
                     <Button className={styles.normalButton}>
@@ -42,7 +43,7 @@ const Main = observer(() => {
                     <Button className={styles.normalButton}>
                         <div className={styles.icon}>
                             <AiOutlineHdd style={{ fontSize: '1rem', verticalAlign: 'center' }}></AiOutlineHdd>
-                            通过共享码加入白板
+                            通过共享链接加入白板
                         </div>
                     </Button>
                 </div>
@@ -106,30 +107,37 @@ const Main = observer(() => {
                     <LittleCard
                         src="https://cdn.boardmix.cn/app/images/scenecut/scene-create.png"
                         description="创建白板"
+                        type='new'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-mindmap.png'
                         description="思维导图"
+                        type='templete'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
                         description="流程图"
+                        type='templete'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
                         description="流程图"
+                        type='templete'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
                         description="流程图"
+                        type='templete'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
                         description="流程图"
+                        type='templete'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
                         description="流程图"
+                        type='templete'
                     ></LittleCard>
                 </div>
             </div>

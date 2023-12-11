@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction } from 'mobx';
+import { makeAutoObservable, runInAction, autorun } from 'mobx';
 import { UserInfo, WhiteBoard } from '../../global';
 import { message } from 'antd';
 import { Store } from './index';
@@ -9,43 +9,9 @@ class LoginRegisterStore {
     registerWaiting: boolean = false;
     info: UserInfo = {}
     whiteBoard: WhiteBoard = {
-        all: {
-            "1": {
-                id: "1",
-                name: "我的白板1",
-                src: 'https://cdn.boardmix.cn/app/images/scenecut/board-ai-template.jpg',
-                owner: "1",
-                members: ["1"],
-                lastEdit: "2021-4-1"
-            },
-            "2": {
-                id: "2",
-                name: "我的白板2",
-                src: 'https://cdn.boardmix.cn/app/images/scenecut/board-ai-template.jpg',
-                owner: "1",
-                members: ["1"],
-                lastEdit: "2021-4-1"
-            },
-        },
-        mine: {
-            "1": {
-                id: "1",
-                name: "我的白板1",
-                src: 'https://cdn.boardmix.cn/app/images/scenecut/board-ai-template.jpg',
-                owner: "1",
-                members: ["1"],
-                lastEdit: "2021-4-1"
-            },
-            "2": {
-                id: "2",
-                name: "我的白板2",
-                src: 'https://cdn.boardmix.cn/app/images/scenecut/board-ai-template.jpg',
-                owner: "1",
-                members: ["1"],
-                lastEdit: "2021-4-1"
-            },
-        },
-        others: {},
+        all: [],
+        mine: [],
+        others: [],
     }
     constructor(rootStore: Store) {
         makeAutoObservable(this);
@@ -121,7 +87,7 @@ class LoginRegisterStore {
         })
     }
     login(type: "authcode" | "password", email: string, pass: string) {
-        this.loginWaiting = true;
+        this.setLoginWaiting(true);
         message.loading({
             content: '登录中',
             key: 'login',
@@ -153,6 +119,7 @@ class LoginRegisterStore {
                         this.islogged = true;
                         this.info = res.data;
                         this.rootStore.modalStore.setShowLoginModal(false);
+                        this.getWhiteBoard();
                     })
                     break;
                 default:
@@ -161,13 +128,132 @@ class LoginRegisterStore {
         }).catch((err) => {
             message.error(err.message);
         }).finally(() => {
-            this.loginWaiting = false;
+            this.setLoginWaiting(false);
             message.destroy('login');
         })
     }
     logout() {
+        if (!this?.islogged) return;
         this.islogged = false;
         this.info = {};
+        this.whiteBoard = {
+            all: [],
+            mine: [],
+            others: [],
+        };
+        this.clearData();
+    }
+    getWhiteBoard() {
+        Promise.all([this.getWhiteBoardOthers(), this.getWhiteBoardOwn()]).then((res) => {
+            runInAction(() => {
+                this.whiteBoard.others = res[0].data;
+                this.whiteBoard.mine = res[1].data;
+                if (this.whiteBoard.mine) this.whiteBoard.all?.push(...this.whiteBoard.mine);
+                if (this.whiteBoard.others) this.whiteBoard.all?.push(...this.whiteBoard.others);
+                this.saveData();
+                console.log()
+            })
+        }).catch((err) => {
+            message.error(err.message);
+        })
+    }
+    getWhiteBoardOthers() {
+        if (!this.info.token) {
+            return Promise.reject(new Error('未登录'));
+        }
+        return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/list`, {
+            method: 'GET',
+            headers: {
+                'Token': this.info.token
+            },
+        }).then((res) => {
+            if (res.status === 200) {
+                return res.json()
+            } else {
+                throw new Error('获取白板失败')
+            }
+        }).catch((err) => {
+            message.error(err.message);
+        })
+    }
+    getWhiteBoardOwn() {
+        if (!this.info.token) {
+            return Promise.reject(new Error('未登录'));
+        }
+        return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/ownerList`, {
+            method: 'GET',
+            headers: {
+                'Token': this.info.token
+            },
+        }).then((res) => {
+            if (res.status === 200) {
+                return res.json()
+            } else {
+                throw new Error('获取白板失败')
+            }
+        }).catch((err) => {
+            message.error(err.message);
+        })
+    }
+    createWhiteBoard(name?: string) {
+        if (!this.info.token || !this.islogged) {
+            message.error('未登录');
+            return;
+        }
+        if (!name) name = '未命名白板';
+        return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Token': this.info.token
+            },
+            body: JSON.stringify({
+                name: name
+            })
+        }).then((res) => {
+            if (res.status === 200) {
+                return res.json()
+            } else {
+                throw new Error('创建白板失败')
+            }
+        }).then((res) => {
+            switch (res.code) {
+                case 0:
+                    message.error(res.msg);
+                    break;
+                case 1:
+                    message.success('创建成功');
+                    this.getWhiteBoard();
+                    return res.data.uuid;
+                default:
+                    throw new Error('网络故障');
+            }
+        }).catch((err) => {
+            message.error(err.message);
+        })
+    }
+    setLoginWaiting(waiting: boolean) {
+        this.loginWaiting = waiting;
+    }
+    saveData() {
+        localStorage.setItem('islogged', this.islogged.toString());
+        localStorage.setItem('info', JSON.stringify(this.info));
+        localStorage.setItem('whiteBoard', JSON.stringify(this.whiteBoard));
+    }
+    clearData() {
+        localStorage.removeItem('islogged');
+        localStorage.removeItem('info');
+        localStorage.removeItem('whiteBoard');
+    }
+    loadData() {
+        const islogged = localStorage.getItem('islogged');
+        const info = localStorage.getItem('info');
+        const whiteBoard = localStorage.getItem('whiteBoard');
+        if (islogged && info && whiteBoard) {
+            this.islogged = JSON.parse(islogged);
+            this.info = JSON.parse(info);
+            this.whiteBoard = JSON.parse(whiteBoard);
+        }
     }
 }
 export default LoginRegisterStore;
