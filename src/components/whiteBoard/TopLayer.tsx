@@ -54,7 +54,7 @@ const TopLayer = observer(() => {
                     stroke='black'
                     strokeWidth={1}
                     id='createSpline'
-                    tension={1}
+                    tension={0.5}
                 ></Line>
             }
         </Layer>

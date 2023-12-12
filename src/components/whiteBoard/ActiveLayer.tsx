@@ -5,6 +5,7 @@ import konva from 'konva';
 import Shape from './Shape';
 import { observer } from "mobx-react-lite";
 import { KonvaEventObject } from 'konva/lib/Node';
+import { Text } from 'react-konva';
 import isUuidV4 from '../../utils/isUuidv4';
 import throttle from '../../utils/throttle';
 import { v4 } from 'uuid';
@@ -55,28 +56,20 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     break;
                 case 'rect':
                     e.evt.preventDefault();
-                    if (e.target === transformer.getStage()) {
-                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
-                    }
+                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
                     break;
                 case 'circle':
                     e.evt.preventDefault();
-                    if (e.target === transformer.getStage()) {
-                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
-                    }
+                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
                     break;
                 case 'line':
                     e.evt.preventDefault();
-                    if (e.target === transformer.getStage()) {
-                        store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
-                    }
+                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
                     break;
                 case 'Spline':
                     e.evt.preventDefault();
-                    if (e.target === transformer.getStage()) {
-                        store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
-                        store.boardElementStore.createFlag = true;
-                    }
+                    store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
+                    store.boardElementStore.createFlag = true;
                     break;
 
             }
@@ -190,7 +183,7 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         stroke: 'black',
                         draggable: true
                     });
-                    if (circle.radius() <= 1||store.boardElementStore.createElement.y===0||store.boardElementStore.createElement.x===0) {
+                    if (circle.radius() <= 1 || store.boardElementStore.createElement.y === 0 || store.boardElementStore.createElement.x === 0) {
                         store.boardElementStore.updateCreate();
                         return;
                     }
@@ -214,7 +207,7 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         draggable: true
                     });
                     store.boardElementStore.updateCreate();
-                    if (Math.abs(line.points()[0] - line.points()[2]) < 1 || Math.abs(line.points()[1] - line.points()[3]) < 1) return;
+                    if (line.points()[2] === 0 || Math.abs(line.points()[0] - line.points()[2]) < 1 || Math.abs(line.points()[1] - line.points()[3]) < 1) return;
                     store.boardElementStore.addStatic(lineId, line);
                     store.boardElementStore.changeStaticToActive(lineId);
                     transformer.nodes([line]);
@@ -233,9 +226,11 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         stroke: 'black',
                         hitStrokeWidth: 20,
                         draggable: true,
-                        tension: 1,
+                        tension: 0.5,
                         lineCap: 'round',
-                        lineJoin: 'round'
+                        lineJoin: 'round',
+                        pointerLength: 10,
+                        pointerWidth: 10
                     });
                     store.boardElementStore.updateCreateAdvanced();
                     if (spline.points().length < 4) return;
@@ -296,6 +291,12 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     <Shape item={item} key={item[0]}></Shape>
                 )
             }
+            <Text
+                x={5000}
+                y={5000}
+                text='中央'
+                draggable
+            ></Text>
             <Transformer ref={transformerRef}
                 onTransformEnd={throttleChangeToAbsolute}
             ></Transformer>
