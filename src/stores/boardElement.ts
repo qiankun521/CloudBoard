@@ -8,8 +8,8 @@ type Element = {
 }
 class BoardElementStore {
     rootStore: Store
-    undoRedoStack: UndoRedoElement[] = []//撤销重做栈
-    stackIndex: number = -1
+    undoRedoStack: UndoRedoElement[][] = [[]]//撤销重做栈
+    stackIndex: number = 0//栈指针
     staticElement: Element = {}//静态层元素
     activeElement: Element = {}//动态层元素
     selectElement: { x: number, y: number, width: number, height: number } = {
@@ -156,6 +156,43 @@ class BoardElementStore {
     updateScale(scaleX: number, scaleY: number) {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
+    }
+    pushUndoRedoStack(element: UndoRedoElement[]) {
+        if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
+        this.undoRedoStack.push(element);
+        this.stackIndex = this.undoRedoStack.length - 1;
+    }
+    popUndoRedoStack() {
+        if (this.stackIndex - 1 < 0) return;
+        const elements = this.undoRedoStack[this.stackIndex];
+        for (const element of elements) {
+            switch (element.type) {
+                case 'create':
+                    delete this.activeElement[element.id];
+                    break;
+                case 'delete':
+                    this.activeElement[element.id] = element.element;
+                    break;
+                case 'update':
+                    let flag = false;
+                    for (let i = this.stackIndex - 1; i >= 0; i--) {
+                        for (const item of this.undoRedoStack[i]) {
+                            if (item.id === element.id) {
+                                this.activeElement[element.id] = item.element;
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag) break;
+                    }
+                    if(!flag)console.error('undo redo error');
+                    break;
+                default:
+                    console.error('undo redo error');
+                    break;
+            }
+        }
+        this.stackIndex--;
     }
 }
 export default BoardElementStore;

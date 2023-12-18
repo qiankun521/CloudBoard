@@ -167,11 +167,12 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(id, rect);
                     store.boardElementStore.changeStaticToActive(id);
                     transformer.nodes([rect]);
-                    store.boardElementStore.undoRedoStack.push({
+                    store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
                         id: id,
                         element: store.boardElementStore.activeElement[id].clone()
-                    })
+                    }]);
+                    store.websocketStore.sendMessage(rect, 'create');
                     break;
                 case 'circle':
                     const circleId = v4();
@@ -191,11 +192,12 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(circleId, circle);
                     store.boardElementStore.changeStaticToActive(circleId);
                     transformer.nodes([circle]);
-                    store.boardElementStore.undoRedoStack.push({
+                    store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
                         id: circleId,
                         element: store.boardElementStore.activeElement[circleId].clone()
-                    })
+                    }])
+                    store.websocketStore.sendMessage(circle, 'create');
                     break;
                 case 'line':
                     const lineId = v4();
@@ -211,11 +213,12 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(lineId, line);
                     store.boardElementStore.changeStaticToActive(lineId);
                     transformer.nodes([line]);
-                    store.boardElementStore.undoRedoStack.push({
+                    store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
                         id: lineId,
                         element: store.boardElementStore.activeElement[lineId].clone()
-                    })
+                    }])
+                    store.websocketStore.sendMessage(line, 'create');
                     break;
                 case 'Spline':
                     store.boardElementStore.createFlag = false;
@@ -237,11 +240,12 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.addStatic(splineId, spline);
                     store.boardElementStore.changeStaticToActive(splineId);
                     transformer.nodes([spline]);
-                    store.boardElementStore.undoRedoStack.push({
+                    store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
                         id: splineId,
                         element: store.boardElementStore.activeElement[splineId].clone()
-                    })
+                    }])
+                    store.websocketStore.sendMessage(spline, 'create');
                     break;
             }
         }
@@ -260,7 +264,7 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
             window.removeEventListener('mousemove', throttleHandleMove);
             window.removeEventListener('touchmove', throttleHandleMove);
         }
-    }, [scrollRef, stageRef, store.boardElementStore]);
+    }, [scrollRef, stageRef, store.boardElementStore, store.websocketStore]);
 
     const changeToAbsolute = () => {
         if (!scrollRef || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
@@ -276,11 +280,11 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.updateActive(item.id(), new konva.Line().setAttrs(item.getAttrs()));
                     break;
             }
-            store.boardElementStore.undoRedoStack.push({
+            store.boardElementStore.pushUndoRedoStack([{
                 type: 'update',
                 id: item.id(),
                 element: store.boardElementStore.staticElement[item.id()]
-            })
+            }])
         });
     };
     const throttleChangeToAbsolute = throttle(changeToAbsolute, 200);

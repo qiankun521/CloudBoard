@@ -1,6 +1,7 @@
 import { makeAutoObservable } from 'mobx';
 import { Store } from './index';
 import { message } from 'antd';
+import konva from 'konva';
 class WebSocketStore {
     rootStore: Store
     socket: WebSocket | null = null;
@@ -14,6 +15,7 @@ class WebSocketStore {
         this.socket = new WebSocket(`${process.env.REACT_APP_REQUEST_URL}/websocket`);
         this.socket.onopen = () => {
             this.isconnected = true;
+            console.log('websocket connected');
         }
         this.socket.onmessage = (event) => {
             this.messages.push(event.data);
@@ -33,12 +35,21 @@ class WebSocketStore {
             this.isconnected = false;
         }
     }
-    sendMessage(message: string) {
-        if (this.socket) {
-            this.socket.send(message);
-        }
+    sendMessage(element: konva.Shape, type: string) {
+        console.log('send message', element.id());
+        // if (!this.socket) return;
+        // const arr=[];
+        // const tmp = {
+        //     type: type,
+        //     data: JSON.stringify(element),
+        //     eid: element.id()
+        // }
+        // arr.push(tmp);
+        // this.socket.send(JSON.stringify(arr));
     }
     handleMessages(message: string) {
+        //TODO 初次建立连接后，服务器会发送目前白板所有元素的信息
+        
         console.log("message", message);
     }
 }
