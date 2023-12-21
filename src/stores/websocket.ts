@@ -2,6 +2,7 @@ import { makeAutoObservable } from 'mobx';
 import { Store } from './index';
 import { message } from 'antd';
 import konva from 'konva';
+import { UndoRedoElement } from '../../global';
 class WebSocketStore {
     rootStore: Store
     socket: WebSocket | null = null;
@@ -35,8 +36,11 @@ class WebSocketStore {
             this.isconnected = false;
         }
     }
-    sendMessage(element: konva.Shape, type: string) {
-        console.log('send message', element.id());
+    sendMessage(elements: UndoRedoElement[]) {
+        console.log('send message');
+        for(const element of elements){
+            console.log(element.id,element.type)
+        }
         // if (!this.socket) return;
         // const arr=[];
         // const tmp = {
@@ -49,8 +53,11 @@ class WebSocketStore {
     }
     handleMessages(message: string) {
         //TODO 初次建立连接后，服务器会发送目前白板所有元素的信息
-        
-        console.log("message", message);
+        const elements=JSON.parse(message);
+        console.log("receive message");
+        for(const element of elements){
+            console.log(element.id,element.type)
+        }
     }
 }
 export default WebSocketStore;

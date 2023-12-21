@@ -9,6 +9,7 @@ type Element = {
 class BoardElementStore {
     rootStore: Store
     undoRedoStack: UndoRedoElement[][] = [[]]//撤销重做栈
+    undoRedoElement: UndoRedoElement[] = []//撤销重做元素
     stackIndex: number = 0//栈指针
     staticElement: Element = {}//静态层元素
     activeElement: Element = {}//动态层元素
@@ -159,8 +160,10 @@ class BoardElementStore {
     }
     pushUndoRedoStack(element: UndoRedoElement[]) {
         if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
+        this.rootStore.websocketStore.sendMessage(element);
         this.undoRedoStack.push(element);
         this.stackIndex = this.undoRedoStack.length - 1;
+        this.undoRedoElement = [];
     }
     popUndoRedoStack() {
         if (this.stackIndex - 1 < 0) return;
@@ -185,7 +188,7 @@ class BoardElementStore {
                         }
                         if (flag) break;
                     }
-                    if(!flag)console.error('undo redo error');
+                    if (!flag) console.error('undo redo error');
                     break;
                 default:
                     console.error('undo redo error');
@@ -193,6 +196,9 @@ class BoardElementStore {
             }
         }
         this.stackIndex--;
+    }
+    pushUndoRedoElement(element: UndoRedoElement) {
+        this.undoRedoElement.push(element);
     }
 }
 export default BoardElementStore;

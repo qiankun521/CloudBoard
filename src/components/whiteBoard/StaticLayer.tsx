@@ -9,10 +9,9 @@ const StaticLayer = observer(() => {
         <>
             {
                 store.boardElementStore.static.map((item) =>
-                    <Shape item={item} key={item[0]}></Shape>
+                    <Shape item={item} key={item[0]} transformerRef={null}></Shape>
                 )
             }
-            
         </>
     )
 })

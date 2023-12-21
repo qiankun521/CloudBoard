@@ -172,7 +172,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         id: id,
                         element: store.boardElementStore.activeElement[id].clone()
                     }]);
-                    store.websocketStore.sendMessage(rect, 'create');
                     break;
                 case 'circle':
                     const circleId = v4();
@@ -197,7 +196,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         id: circleId,
                         element: store.boardElementStore.activeElement[circleId].clone()
                     }])
-                    store.websocketStore.sendMessage(circle, 'create');
                     break;
                 case 'line':
                     const lineId = v4();
@@ -218,7 +216,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         id: lineId,
                         element: store.boardElementStore.activeElement[lineId].clone()
                     }])
-                    store.websocketStore.sendMessage(line, 'create');
                     break;
                 case 'Spline':
                     store.boardElementStore.createFlag = false;
@@ -245,7 +242,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                         id: splineId,
                         element: store.boardElementStore.activeElement[splineId].clone()
                     }])
-                    store.websocketStore.sendMessage(spline, 'create');
                     break;
             }
         }
@@ -280,11 +276,14 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.updateActive(item.id(), new konva.Line().setAttrs(item.getAttrs()));
                     break;
             }
-            store.boardElementStore.pushUndoRedoStack([{
+            store.boardElementStore.pushUndoRedoElement({
                 type: 'update',
                 id: item.id(),
                 element: store.boardElementStore.staticElement[item.id()]
-            }])
+            })
+            if (store.boardElementStore.undoRedoElement.length === transformerRef.current?.getNodes().length) {
+                store.boardElementStore.pushUndoRedoStack(store.boardElementStore.undoRedoElement);
+            }
         });
     };
     const throttleChangeToAbsolute = throttle(changeToAbsolute, 200);
@@ -292,16 +291,11 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
         <>
             {store.boardElementStore.active.length > 0 &&
                 store.boardElementStore.active.map((item) =>
-                    <Shape item={item} key={item[0]}></Shape>
+                    <Shape item={item} key={item[0]} transformerRef={transformerRef.current}></Shape>
                 )
             }
-            <Text
-                x={5000}
-                y={5000}
-                text='中央'
-                draggable
-            ></Text>
             <Transformer ref={transformerRef}
+                //onTransform={throttleChangeToAbsolute}
                 onTransformEnd={throttleChangeToAbsolute}
             ></Transformer>
         </>
