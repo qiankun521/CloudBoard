@@ -2,6 +2,7 @@ import styles from '../../assets/styles/Main/LittleCard.module.scss';
 import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
 import { useNavigate } from 'react-router-dom';
+import { message } from 'antd';
 const LittleCard = ({ src, description, type }: { src: string, description: string, type: 'new' | 'templete' }) => {
     const store = useContext(storeContext);
     const navigate = useNavigate();
@@ -9,6 +10,8 @@ const LittleCard = ({ src, description, type }: { src: string, description: stri
         if (type === 'new') {
             store.loginRegisterStore.createWhiteBoard()?.then((uuid) => {
                 navigate(`/whiteboard/${uuid}`);
+            }).catch((err) => {
+                message.error(err);
             });
         } else {
         }

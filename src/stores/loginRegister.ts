@@ -143,8 +143,11 @@ class LoginRegisterStore {
         };
         this.clearData();
     }
+    setLoginWaiting(waiting: boolean) {
+        this.loginWaiting = waiting;
+    }
     getWhiteBoard() {
-        Promise.all([this.getWhiteBoardOthers(), this.getWhiteBoardOwn()]).then((res) => {
+        return Promise.all([this.getWhiteBoardOthers(), this.getWhiteBoardOwn()]).then((res) => {
             runInAction(() => {
                 this.whiteBoard.others = res[0].data;
                 this.whiteBoard.mine = res[1].data;
@@ -152,7 +155,7 @@ class LoginRegisterStore {
                 if (this.whiteBoard.mine) this.whiteBoard.all.push(...this.whiteBoard.mine);
                 if (this.whiteBoard.others) this.whiteBoard.all.push(...this.whiteBoard.others);
                 this.saveData();
-                console.log()
+                console.log("get whiteboard")
             })
         }).catch((err) => {
             message.error(err.message);
@@ -218,24 +221,59 @@ class LoginRegisterStore {
             } else {
                 throw new Error('创建白板失败')
             }
-        }).then((res) => {
+        }).then(async (res) => {
             switch (res.code) {
                 case 0:
                     message.error(res.msg);
                     break;
                 case 1:
                     message.success('创建成功');
-                    this.getWhiteBoard();
+                    await this.getWhiteBoard();
                     return res.data.uuid;
                 default:
                     throw new Error('网络故障');
             }
         }).catch((err) => {
-            message.error(err.message);
+            return err;
         })
     }
-    setLoginWaiting(waiting: boolean) {
-        this.loginWaiting = waiting;
+    joinWhiteBoard(uuid: string) {
+        if (!this.info.token || !this.islogged) {
+            message.error('未登录');
+            return;
+        }
+        return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/join`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Token': this.info.token
+            },
+            body: JSON.stringify({
+                uuid: uuid
+            })
+        }).then((res) => {
+            if (res.status === 200) {
+                return res.json()
+            } else {
+                throw new Error('加入白板失败')
+            }
+        }).then(async (res) => {
+            console.log("join");
+            switch (res.code) {
+                case 0:
+                    message.error(res.msg);
+                    return;
+                case 1:
+                    message.success('加入成功');
+                    await this.getWhiteBoard();
+                    return res.data.id;
+                default:
+                    throw new Error('网络故障');
+            }
+        }).catch((err) => {
+            message.error(err.message);
+            return;
+        })
     }
     saveData() {
         localStorage.setItem('islogged', this.islogged.toString());

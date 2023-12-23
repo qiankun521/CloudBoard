@@ -16,9 +16,9 @@ declare type SingleBoard = {
     lastEdit?: string,
 }
 declare type WhiteBoard = {
-    all?: SingleBoard[]
-    mine?: SingleBoard[]
-    others?: SingleBoard[]
+    all: SingleBoard[]
+    mine: SingleBoard[]
+    others: SingleBoard[]
     collection?: SingleBoard[]
 }
 declare type Status =

@@ -9,7 +9,7 @@ const MainPage = () => {
   const store = useContext(storeContext);
   useEffect(() => {
     store.loginRegisterStore.loadData();
-  }, []);
+  }, [store.loginRegisterStore]);
   return (
     <main className={styles.mainPage}>
       <MainLeft></MainLeft>

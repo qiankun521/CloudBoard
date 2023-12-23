@@ -8,9 +8,9 @@ type Element = {
 }
 class BoardElementStore {
     rootStore: Store
-    undoRedoStack: UndoRedoElement[][] = [[]]//撤销重做栈
+    undoRedoStack: UndoRedoElement[][] = []//撤销重做栈
     undoRedoElement: UndoRedoElement[] = []//撤销重做元素
-    stackIndex: number = 0//栈指针
+    stackIndex: number = -1//栈指针
     staticElement: Element = {}//静态层元素
     activeElement: Element = {}//动态层元素
     selectElement: { x: number, y: number, width: number, height: number } = {
@@ -61,6 +61,12 @@ class BoardElementStore {
     updateStatic(id: string, element: konva.Shape) {
         this.staticElement[id] = element;
     }
+    deleteActive(id: string) {
+        delete this.activeElement[id];
+    }
+    deleteStatic(id: string) {
+        delete this.staticElement[id];
+    }
     updateSelect(point?: { x: number, y: number }, wH?: { x: number, y: number }) {
         if (point && !wH) {
             this.selectElement = {
@@ -83,7 +89,7 @@ class BoardElementStore {
             }
         }
     }
-    updateCreate(last?: { x: number, y: number }, now?: { x: number, y: number }) {
+    updateCreate(last?: { x: number, y: number }, now?: { x: number, y: number }) {//更新创建元素的坐标
         if (last && now) {
             this.createElement = {
                 ...this.createElement,
@@ -114,7 +120,7 @@ class BoardElementStore {
             }
         }
     }
-    updateCreateAdvanced(point?: number[]) {
+    updateCreateAdvanced(point?: number[]) {//更新创建复杂元素的坐标
         if (point) {
             this.createAdvancedElement.push(...point);
         } else {
@@ -160,7 +166,7 @@ class BoardElementStore {
     }
     pushUndoRedoStack(element: UndoRedoElement[]) {
         if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
-        this.rootStore.websocketStore.sendMessage(element);
+        if (this.stackIndex !== -1) this.rootStore.websocketStore.sendMessage(element);
         this.undoRedoStack.push(element);
         this.stackIndex = this.undoRedoStack.length - 1;
         this.undoRedoElement = [];

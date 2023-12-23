@@ -1,4 +1,4 @@
-import { makeAutoObservable } from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import { Store } from './index';
 import { message } from 'antd';
 import konva from 'konva';
@@ -12,22 +12,32 @@ class WebSocketStore {
         makeAutoObservable(this);
         this.rootStore = rootStore;
     }
-    connect() {
-        this.socket = new WebSocket(`${process.env.REACT_APP_REQUEST_URL}/websocket`);
+    connect(id: string) {
+        this.socket = new WebSocket(`${process.env.REACT_APP_REQURST_WSURL}/connect/${id}`, `${this.rootStore.loginRegisterStore.info.token}`);
         this.socket.onopen = () => {
-            this.isconnected = true;
-            console.log('websocket connected');
+            runInAction(() => {
+                this.isconnected = true;
+                console.log('websocket connected');
+            })
         }
         this.socket.onmessage = (event) => {
-            this.messages.push(event.data);
-            this.handleMessages(event.data);
+            runInAction(() => {
+                this.messages.push(event.data);
+                this.handleMessages(event.data);
+                console.log("get event")
+            })
         }
         this.socket.onclose = () => {
-            this.isconnected = false;
+            runInAction(() => {
+                this.isconnected = false;
+                console.log('websocket closed');
+            })
         }
         this.socket.onerror = () => {
-            this.isconnected = false;
-            message.error('网络异常,连接断开');
+            runInAction(() => {
+                this.isconnected = false;
+                console.log('websocket error');
+            })
         }
     }
     close() {
@@ -38,8 +48,8 @@ class WebSocketStore {
     }
     sendMessage(elements: UndoRedoElement[]) {
         console.log('send message');
-        for(const element of elements){
-            console.log(element.id,element.type)
+        for (const element of elements) {
+            console.log(element.id, element.type)
         }
         // if (!this.socket) return;
         // const arr=[];
@@ -52,11 +62,20 @@ class WebSocketStore {
         // this.socket.send(JSON.stringify(arr));
     }
     handleMessages(message: string) {
-        //TODO 初次建立连接后，服务器会发送目前白板所有元素的信息
-        const elements=JSON.parse(message);
         console.log("receive message");
-        for(const element of elements){
-            console.log(element.id,element.type)
+        if (this.messages.length === 0) {
+            this.rootStore.boardElementStore.pushUndoRedoStack(JSON.parse(message));
+            return;
+        }
+        const elements = JSON.parse(message);
+        for (const element of elements) {
+            if (element.type === 'update') {
+                this.rootStore.boardElementStore.updateActive(element.eid, element.data);
+            } else if (element.type === 'create') {
+                this.rootStore.boardElementStore.addActive(element.eid, element.data);
+            } else if (element.type === 'delete') {
+                this.rootStore.boardElementStore.deleteActive(element.eid);
+            }
         }
     }
 }
