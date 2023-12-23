@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite";
 import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
 import throttle from '../../utils/throttle';
+import { toJS } from 'mobx';
 const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape], transformerRef: konva.Transformer | null }) => {
     let element;
     const store = useContext(storeContext);
@@ -28,11 +29,11 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                 store.boardElementStore.updateActive(e.target.id(), rect);
                 store.boardElementStore.pushUndoRedoElement({
                     type: 'update',
-                    id: e.target.id(),
-                    element: rect
+                    eId: e.target.id(),
+                    data: rect
                 });
                 if (store.boardElementStore.undoRedoElement.length === transformerRef?.nodes().length) {
-                    store.boardElementStore.pushUndoRedoStack(store.boardElementStore.undoRedoElement);
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
             case 'Circle':
@@ -40,11 +41,11 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                 store.boardElementStore.updateActive(e.target.id(), circle);
                 store.boardElementStore.pushUndoRedoElement({
                     type: 'update',
-                    id: e.target.id(),
-                    element: circle
+                    eId: e.target.id(),
+                    data: circle
                 });
                 if (store.boardElementStore.pushUndoRedoElement.length === transformerRef?.nodes().length) {
-                    store.boardElementStore.pushUndoRedoStack(store.boardElementStore.undoRedoElement);
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
             case 'Line':
@@ -52,11 +53,11 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                 store.boardElementStore.updateActive(e.target.id(), line);
                 store.boardElementStore.pushUndoRedoElement({
                     type: 'update',
-                    id: e.target.id(),
-                    element: line
+                    eId: e.target.id(),
+                    data: line
                 });
                 if (store.boardElementStore.pushUndoRedoElement.length === transformerRef?.nodes().length) {
-                    store.boardElementStore.pushUndoRedoStack(store.boardElementStore.undoRedoElement);
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
         }

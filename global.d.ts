@@ -34,7 +34,7 @@ declare type Status =
     'text';
 declare type UndoRedoElement = {
     type: 'create' | 'delete' | 'update',
-    id: string,
-    element: konva.Shape
+    eId: string,
+    data: konva.Shape
 };
 export { UserInfo, WhiteBoard, SingleBoard, Status, UndoRedoElement }

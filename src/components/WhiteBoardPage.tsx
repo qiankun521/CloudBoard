@@ -16,6 +16,8 @@ const WhiteBoardPage = observer(() => {
     useEffect(() => {
         if (!store.loginRegisterStore.islogged) {
             navigate('/home');
+        } else if (store.websocketStore.isconnected) {
+            return;
         }
         else {
             if (boardId && isUuidV4(boardId)) {
@@ -25,17 +27,16 @@ const WhiteBoardPage = observer(() => {
                     if (single.uuid === boardId) {
                         flag = true;
                         id = single.id!;
-                        console.log("flag true")
                         break;
                     }
                 }
                 if (flag) {
                     store.websocketStore.connect(id!);
-
                 } else {
                     store.loginRegisterStore.joinWhiteBoard(boardId)?.then((id) => {
                         if (id) {
                             store.websocketStore.connect(id);
+                            store.boardElementStore.reset();
                         } else {
                             navigate('/home');
                         }
@@ -46,8 +47,12 @@ const WhiteBoardPage = observer(() => {
                 navigate('/home');
             }
         }
-    }, [boardId, navigate, store.loginRegisterStore, store.loginRegisterStore.islogged, store.loginRegisterStore.whiteBoard.all, store.websocketStore]);
-    if (!store.websocketStore.isconnected) return (
+        return () => {
+            store.websocketStore.close();
+            store.boardElementStore.reset();
+        }
+    }, [boardId, navigate, store.boardElementStore, store.loginRegisterStore, store.loginRegisterStore.islogged, store.loginRegisterStore.whiteBoard.all, store.websocketStore]);
+    if (store.websocketStore.messages.length === 0) return (
         <Loading></Loading>
     )
     else return (

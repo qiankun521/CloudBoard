@@ -9,7 +9,9 @@ import { Text } from 'react-konva';
 import isUuidV4 from '../../utils/isUuidv4';
 import throttle from '../../utils/throttle';
 import { v4 } from 'uuid';
-const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: konva.Stage | null }) => {
+import { Stage } from 'konva/lib/Stage';
+import { toJS } from 'mobx';
+const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObject<HTMLDivElement> | null, stageRef: React.RefObject<Stage> | null }) => {
     const store = useContext(storeContext);
     const transformerRef = useRef<konva.Transformer>(null);
     useEffect(() => {
@@ -27,9 +29,9 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 clientX = touch.clientX;
                 clientY = touch.clientY;
             }
-            if (scrollRef) {
-                clientX = (clientX as number + scrollRef?.scrollLeft) * store.boardElementStore.scaleX;
-                clientY = (clientY as number + scrollRef?.scrollTop) * store.boardElementStore.scaleY;
+            if (scrollRef && scrollRef.current) {
+                clientX = (clientX as number + scrollRef.current?.scrollLeft) * store.boardElementStore.scaleX;
+                clientY = (clientY as number + scrollRef.current?.scrollTop) * store.boardElementStore.scaleY;
             }
             switch (store.boardElementStore.status) {
                 case 'select':
@@ -71,7 +73,6 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
                     store.boardElementStore.createFlag = true;
                     break;
-
             }
         }
         const handleMove = (e: MouseEvent | TouchEvent) => {
@@ -88,9 +89,9 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                 clientX = touch.clientX;
                 clientY = touch.clientY;
             }
-            if (scrollRef) {
-                clientX = clientX as number + scrollRef?.scrollLeft;
-                clientY = clientY as number + scrollRef?.scrollTop;
+            if (scrollRef && scrollRef.current) {
+                clientX = clientX as number + scrollRef.current?.scrollLeft;
+                clientY = clientY as number + scrollRef.current?.scrollTop;
             }
             switch (store.boardElementStore.status) {
                 case 'select':
@@ -99,9 +100,9 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     }
                     break;
                 case 'move':
-                    if (scrollRef && store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
-                        scrollRef.scrollTop -= ((clientY as number) - store.boardElementStore.selectElement.y) / 1.5;
-                        scrollRef.scrollLeft -= ((clientX as number) - store.boardElementStore.selectElement.x) / 1.5;
+                    if (scrollRef && scrollRef.current && store.boardElementStore.selectElement.x !== 0 && store.boardElementStore.selectElement.y !== 0) {
+                        scrollRef.current.scrollTop -= ((clientY as number) - store.boardElementStore.selectElement.y) / 1.5;
+                        scrollRef.current.scrollLeft -= ((clientX as number) - store.boardElementStore.selectElement.x) / 1.5;
                         store.boardElementStore.updateSelect({ x: clientX as number, y: clientY as number });
                     }
                     break;
@@ -169,8 +170,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     transformer.nodes([rect]);
                     store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
-                        id: id,
-                        element: store.boardElementStore.activeElement[id].clone()
+                        eId: id,
+                        data: store.boardElementStore.activeElement[id].clone()
                     }]);
                     break;
                 case 'circle':
@@ -193,8 +194,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     transformer.nodes([circle]);
                     store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
-                        id: circleId,
-                        element: store.boardElementStore.activeElement[circleId].clone()
+                        eId: circleId,
+                        data: store.boardElementStore.activeElement[circleId].clone()
                     }])
                     break;
                 case 'line':
@@ -213,8 +214,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     transformer.nodes([line]);
                     store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
-                        id: lineId,
-                        element: store.boardElementStore.activeElement[lineId].clone()
+                        eId: lineId,
+                        data: store.boardElementStore.activeElement[lineId].clone()
                     }])
                     break;
                 case 'Spline':
@@ -239,15 +240,15 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
                     transformer.nodes([spline]);
                     store.boardElementStore.pushUndoRedoStack([{
                         type: 'create',
-                        id: splineId,
-                        element: store.boardElementStore.activeElement[splineId].clone()
+                        eId: splineId,
+                        data: store.boardElementStore.activeElement[splineId].clone()
                     }])
                     break;
             }
         }
-        if (stageRef) {
-            stageRef.on('mousedown touchstart', handleDown);
-            stageRef.on('mouseup touchend mouseleave', handleUp);
+        if (stageRef && stageRef.current) {
+            stageRef.current.on('mousedown touchstart', handleDown);
+            stageRef.current.on('mouseup touchend mouseleave', handleUp);
         }
         window.addEventListener('mousemove', throttleHandleMove);
         window.addEventListener('touchmove', throttleHandleMove);
@@ -261,9 +262,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
             window.removeEventListener('touchmove', throttleHandleMove);
         }
     }, [scrollRef, stageRef, store.boardElementStore, store.websocketStore]);
-
     const changeToAbsolute = () => {
-        if (!scrollRef || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
+        if (!scrollRef || !scrollRef.current || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
         transformerRef.current.getNodes().forEach((item) => {
             switch (item.getClassName()) {
                 case 'Rect':
@@ -278,11 +278,13 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivEleme
             }
             store.boardElementStore.pushUndoRedoElement({
                 type: 'update',
-                id: item.id(),
-                element: store.boardElementStore.staticElement[item.id()]
+                eId: item.id(),
+                data: store.boardElementStore.activeElement[item.id()]
             })
+            console.log(store.boardElementStore.undoRedoElement.length, transformerRef.current?.getNodes().length);
+            console.log(toJS(store.boardElementStore.undoRedoElement));
             if (store.boardElementStore.undoRedoElement.length === transformerRef.current?.getNodes().length) {
-                store.boardElementStore.pushUndoRedoStack(store.boardElementStore.undoRedoElement);
+                store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
             }
         });
     };

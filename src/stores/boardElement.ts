@@ -165,6 +165,7 @@ class BoardElementStore {
         this.scaleY = scaleY;
     }
     pushUndoRedoStack(element: UndoRedoElement[]) {
+        console.log('push undo redo stack', element.length)
         if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
         if (this.stackIndex !== -1) this.rootStore.websocketStore.sendMessage(element);
         this.undoRedoStack.push(element);
@@ -177,17 +178,17 @@ class BoardElementStore {
         for (const element of elements) {
             switch (element.type) {
                 case 'create':
-                    delete this.activeElement[element.id];
+                    delete this.activeElement[element.eId];
                     break;
                 case 'delete':
-                    this.activeElement[element.id] = element.element;
+                    this.activeElement[element.eId] = element.data;
                     break;
                 case 'update':
                     let flag = false;
                     for (let i = this.stackIndex - 1; i >= 0; i--) {
                         for (const item of this.undoRedoStack[i]) {
-                            if (item.id === element.id) {
-                                this.activeElement[element.id] = item.element;
+                            if (item.eId === element.eId) {
+                                this.activeElement[element.eId] = item.data;
                                 flag = true;
                                 break;
                             }
@@ -202,6 +203,13 @@ class BoardElementStore {
             }
         }
         this.stackIndex--;
+    }
+    reset() {
+        this.undoRedoStack = [];
+        this.undoRedoElement = [];
+        this.stackIndex = -1;
+        this.staticElement = {};
+        this.activeElement = {};
     }
     pushUndoRedoElement(element: UndoRedoElement) {
         this.undoRedoElement.push(element);

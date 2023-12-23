@@ -7,9 +7,6 @@ import { useEffect, useContext } from 'react';
 import { storeContext } from '../stores/storeContext';
 const MainPage = () => {
   const store = useContext(storeContext);
-  useEffect(() => {
-    store.loginRegisterStore.loadData();
-  }, [store.loginRegisterStore]);
   return (
     <main className={styles.mainPage}>
       <MainLeft></MainLeft>

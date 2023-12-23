@@ -16,6 +16,7 @@ class LoginRegisterStore {
     constructor(rootStore: Store) {
         makeAutoObservable(this);
         this.rootStore = rootStore;
+        this.loadData();
     }
     sendAuthCode(email: string, type: string) {
         fetch(`${process.env.REACT_APP_REQUEST_URL}/user/verification?type=${type}`, {
@@ -133,7 +134,6 @@ class LoginRegisterStore {
         })
     }
     logout() {
-        if (!this?.islogged) return;
         this.islogged = false;
         this.info = {};
         this.whiteBoard = {
@@ -155,7 +155,6 @@ class LoginRegisterStore {
                 if (this.whiteBoard.mine) this.whiteBoard.all.push(...this.whiteBoard.mine);
                 if (this.whiteBoard.others) this.whiteBoard.all.push(...this.whiteBoard.others);
                 this.saveData();
-                console.log("get whiteboard")
             })
         }).catch((err) => {
             message.error(err.message);
@@ -173,6 +172,9 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
+            } else if (res.status === 401) {
+                this.logout();
+                throw new Error('登录过期，请重新登录');
             } else {
                 throw new Error('获取白板失败')
             }
@@ -192,6 +194,9 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
+            } else if (res.status === 401) {
+                this.logout();
+                throw new Error('登录过期，请重新登录');
             } else {
                 throw new Error('获取白板失败')
             }
@@ -218,7 +223,10 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
-            } else {
+            } else if(res.status===401){
+                this.logout();
+                throw new Error('登录过期，请重新登录');
+            }else {
                 throw new Error('创建白板失败')
             }
         }).then(async (res) => {
@@ -254,11 +262,13 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
-            } else {
+            } else if(res.status===401){
+                this.logout();
+                throw new Error('登录过期，请重新登录');
+            }else {
                 throw new Error('加入白板失败')
             }
         }).then(async (res) => {
-            console.log("join");
             switch (res.code) {
                 case 0:
                     message.error(res.msg);
