@@ -262,7 +262,32 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
             window.removeEventListener('touchmove', throttleHandleMove);
         }
     }, [scrollRef, stageRef, store.boardElementStore, store.websocketStore]);
-    const changeToAbsolute = () => {
+    const handleTransform = () => {
+        if (!scrollRef || !scrollRef.current || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
+        transformerRef.current.getNodes().forEach((item) => {
+            switch (item.getClassName()) {
+                case 'Rect':
+                    store.boardElementStore.updateActive(item.id(), new konva.Rect().setAttrs(item.getAttrs()));
+                    break;
+                case 'Circle':
+                    store.boardElementStore.updateActive(item.id(), new konva.Circle().setAttrs(item.getAttrs()));
+                    break;
+                case 'Line':
+                    store.boardElementStore.updateActive(item.id(), new konva.Line().setAttrs(item.getAttrs()));
+                    break;
+            }
+            store.boardElementStore.pushUndoRedoElement({
+                type: 'temp',
+                eId: item.id(),
+                data: store.boardElementStore.activeElement[item.id()]
+            });
+            if (store.boardElementStore.undoRedoElement.length === transformerRef.current?.getNodes().length) {
+                store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
+            }
+        });
+    };
+    const throttlehandleTransform = throttle(handleTransform, 50);
+    const handleTransformEnd = (e: KonvaEventObject<Event>) => {
         if (!scrollRef || !scrollRef.current || !transformerRef.current || transformerRef.current.getNodes().length === 0) return;
         transformerRef.current.getNodes().forEach((item) => {
             switch (item.getClassName()) {
@@ -280,25 +305,22 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                 type: 'update',
                 eId: item.id(),
                 data: store.boardElementStore.activeElement[item.id()]
-            })
-            console.log(store.boardElementStore.undoRedoElement.length, transformerRef.current?.getNodes().length);
-            console.log(toJS(store.boardElementStore.undoRedoElement));
+            });
             if (store.boardElementStore.undoRedoElement.length === transformerRef.current?.getNodes().length) {
                 store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
             }
         });
-    };
-    const throttleChangeToAbsolute = throttle(changeToAbsolute, 200);
+    }
     return (
         <>
             {store.boardElementStore.active.length > 0 &&
                 store.boardElementStore.active.map((item) =>
-                    <Shape item={item} key={item[0]} transformerRef={transformerRef.current}></Shape>
+                    <Shape item={item} key={item[0]} transformerRef={transformerRef as React.RefObject<Transformer> | null}></Shape>
                 )
             }
             <Transformer ref={transformerRef}
-                //onTransform={throttleChangeToAbsolute}
-                onTransformEnd={throttleChangeToAbsolute}
+                onTransform={throttlehandleTransform}
+                onTransformEnd={handleTransformEnd}
             ></Transformer>
         </>
     );

@@ -50,6 +50,7 @@ class WebSocketStore {
             this.isconnected = false;
             this.socket = null;
             this.messages = [];
+            this.rootStore.boardElementStore.reset();
         }
     }
     sendMessage(elements: UndoRedoElement[]) {
@@ -58,7 +59,7 @@ class WebSocketStore {
         this.socket.send(JSON.stringify(elements));
     }
     handleMessages(message: string) {
-        console.log("handle message", this.messages.length);
+        console.log("handle message", JSON.stringify(this.messages));
         const elements = JSON.parse(message);
         if (this.messages.length === 1) {
             const tmp = [];
@@ -72,7 +73,7 @@ class WebSocketStore {
         }
         for (const element of elements) {
             const single = konva.Node.create(element.data);
-            if (element.type === 'update') {
+            if (element.type === 'update' || element.type === 'temp') {
                 this.rootStore.boardElementStore.updateActive(element.eId, single);
             } else if (element.type === 'create') {
                 this.rootStore.boardElementStore.addActive(element.eId, single);

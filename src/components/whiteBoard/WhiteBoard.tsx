@@ -55,7 +55,7 @@ const WhiteBoard = observer(() => {
                     </Layer>
                 </Stage>
             </div>
-            <Sidebar scrollRef={scrollRef.current} stageRef={stageRef.current}></Sidebar>
+            <Sidebar scrollRef={scrollRef.current} stageRef={stageRef}></Sidebar>
         </main>
     )
 })

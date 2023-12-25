@@ -23,7 +23,8 @@ import { Avatar, Button, Popover, message } from "antd";
 import konva from 'konva';
 import download from 'downloadjs';
 import { Status } from "../../../global";
-const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: konva.Stage | null }) => {
+import { Stage } from "konva/lib/Stage";
+const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement | null, stageRef: React.RefObject<Stage> | null }) => {
     const store = useContext(storeContext);
     const [select, setSelect] = useState<Status>(store.boardElementStore.status);
     const navigate = useNavigate();
@@ -46,32 +47,38 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
         }
     }
     const handleStageScaleGrow = () => {
-        if (!stageRef || stageRef?.scaleX() >= 2 || stageRef?.scaleY() >= 2) return;
-        stageRef?.scaleX(stageRef?.scaleX() + 0.01);
-        stageRef?.scaleY(stageRef?.scaleY() + 0.01);
-        store.boardElementStore.updateScale(stageRef?.scaleX() + 0.01 as number, stageRef?.scaleY() + 0.01 as number);
+        if (!stageRef || !stageRef.current || stageRef.current?.scaleX() >= 2 || stageRef.current?.scaleY() >= 2) return;
+        stageRef.current?.scaleX(stageRef.current?.scaleX() + 0.01);
+        stageRef.current?.scaleY(stageRef.current?.scaleY() + 0.01);
+        store.boardElementStore.updateScale(stageRef.current?.scaleX() + 0.01 as number, stageRef.current?.scaleY() + 0.01 as number);
     }
     const handleStageScaleShrink = () => {
-        if (!stageRef || stageRef?.scaleX() <= 0.1 || stageRef?.scaleY() <= 0.1) return;
-        stageRef?.scaleX(stageRef?.scaleX() - 0.01);
-        stageRef?.scaleY(stageRef?.scaleY() - 0.01);
-        store.boardElementStore.updateScale(stageRef?.scaleX() - 0.01 as number, stageRef?.scaleY() - 0.01 as number);
+        if (!stageRef || !stageRef.current || stageRef.current?.scaleX() <= 0.1 || stageRef.current?.scaleY() <= 0.1) return;
+        stageRef.current?.scaleX(stageRef.current?.scaleX() - 0.01);
+        stageRef.current?.scaleY(stageRef.current?.scaleY() - 0.01);
+        store.boardElementStore.updateScale(stageRef.current?.scaleX() - 0.01 as number, stageRef.current?.scaleY() - 0.01 as number);
     }
     const handleDownloadJson = () => {
-        if (!stageRef) {
+        if (!stageRef || !stageRef.current) {
             message.error('下载失败');
             return;
         }
-        const json = stageRef.toJSON();
+        const json = stageRef.current.toJSON();
         download(JSON.stringify(json), 'whiteBoard.json', 'text/json');
     }
     const handleDownloadImage = () => {
-        if (!stageRef) {
+        if (!stageRef || !stageRef.current) {
             message.error('下载失败');
             return;
         }
-        const dataURL = stageRef.toDataURL();
+        const dataURL = stageRef.current.toDataURL();
         download(dataURL, 'whiteBoard.png', 'image/png');
+    }
+    const handleUndo = () => {
+
+    }
+    const handleRedo = () => {
+        
     }
     return (
         <>

@@ -11,8 +11,9 @@ declare type SingleBoard = {
     uuid?: string,
     name?: string,
     src?: string,
+    roomId?: string,
     userId?: string,
-    membersID?: string[],
+    membersId?: string[],
     lastEdit?: string,
 }
 declare type WhiteBoard = {
@@ -33,7 +34,7 @@ declare type Status =
     'Spline' |
     'text';
 declare type UndoRedoElement = {
-    type: 'create' | 'delete' | 'update',
+    type: 'create' | 'delete' | 'update'|'temp',
     eId: string,
     data: konva.Shape
 };

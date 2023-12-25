@@ -26,7 +26,8 @@ const WhiteBoardPage = observer(() => {
                 for (const single of store.loginRegisterStore.whiteBoard.all) {
                     if (single.uuid === boardId) {
                         flag = true;
-                        id = single.id!;
+                        if (single.roomId) id = single.roomId;
+                        else if (single.id) id = single.id;
                         break;
                     }
                 }

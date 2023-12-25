@@ -164,18 +164,24 @@ class BoardElementStore {
         this.scaleX = scaleX;
         this.scaleY = scaleY;
     }
-    pushUndoRedoStack(element: UndoRedoElement[]) {
-        console.log('push undo redo stack', element.length)
-        if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
+    pushUndoRedoStack(element: UndoRedoElement[], type?: string) {
+        if (type === 'temp') {//temp为临时元素，不需要推入栈，发送给后端传递做元素变换的过程
+            this.rootStore.websocketStore.sendMessage(element);
+            this.undoRedoElement = [];
+            return;
+        }
         if (this.stackIndex !== -1) this.rootStore.websocketStore.sendMessage(element);
+        if (this.stackIndex !== this.undoRedoStack.length - 1) this.undoRedoStack.splice(this.stackIndex + 1);
         this.undoRedoStack.push(element);
         this.stackIndex = this.undoRedoStack.length - 1;
         this.undoRedoElement = [];
+        console.log('push undo redo stack', this.stackIndex, this.undoRedoStack.length)
     }
     popUndoRedoStack() {
         if (this.stackIndex - 1 < 0) return;
         const elements = this.undoRedoStack[this.stackIndex];
         for (const element of elements) {
+            let flag = false;
             switch (element.type) {
                 case 'create':
                     delete this.activeElement[element.eId];
@@ -184,7 +190,19 @@ class BoardElementStore {
                     this.activeElement[element.eId] = element.data;
                     break;
                 case 'update':
-                    let flag = false;
+                    for (let i = this.stackIndex - 1; i >= 0; i--) {
+                        for (const item of this.undoRedoStack[i]) {
+                            if (item.eId === element.eId) {
+                                this.activeElement[element.eId] = item.data;
+                                flag = true;
+                                break;
+                            }
+                        }
+                        if (flag) break;
+                    }
+                    if (!flag) console.error('undo redo error');
+                    break;
+                case 'temp':
                     for (let i = this.stackIndex - 1; i >= 0; i--) {
                         for (const item of this.undoRedoStack[i]) {
                             if (item.eId === element.eId) {

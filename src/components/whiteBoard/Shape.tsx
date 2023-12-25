@@ -5,24 +5,52 @@ import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
 import throttle from '../../utils/throttle';
 import { toJS } from 'mobx';
-const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape], transformerRef: konva.Transformer | null }) => {
+const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape], transformerRef: any }) => {
     let element;
     const store = useContext(storeContext);
     const handleMove = (e: konva.KonvaEventObject<DragEvent>) => {
         switch (e.target.getClassName()) {
             case 'Rect':
-                store.boardElementStore.updateActive(e.target.id(), new konva.Rect(e.target.attrs));
+                const rect = new konva.Rect(e.target.attrs);
+                store.boardElementStore.updateActive(e.target.id(), rect);
+                store.boardElementStore.pushUndoRedoElement({
+                    type: 'temp',
+                    eId: e.target.id(),
+                    data: rect
+                });
+                console.log(store.boardElementStore.undoRedoElement.length, transformerRef?.current.getNodes().length);
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
+                }
                 break;
             case 'Circle':
-                store.boardElementStore.updateActive(e.target.id(), new konva.Circle(e.target.attrs));
+                const circle = new konva.Circle(e.target.attrs);
+                store.boardElementStore.updateActive(e.target.id(), circle);
+                store.boardElementStore.pushUndoRedoElement({
+                    type: 'temp',
+                    eId: e.target.id(),
+                    data: circle
+                });
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
+                }
                 break;
             case 'Line':
-                store.boardElementStore.updateActive(e.target.id(), new konva.Line(e.target.attrs));
+                const line = new konva.Line(e.target.attrs);
+                store.boardElementStore.updateActive(e.target.id(), line);
+                store.boardElementStore.pushUndoRedoElement({
+                    type: 'temp',
+                    eId: e.target.id(),
+                    data: line
+                });
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
+                }
                 break;
         }
     }
-    const throttleHandleMove = throttle(handleMove, 1000);
-    const handleEnd = (e: konva.KonvaEventObject<DragEvent>) => {
+    const throttleHandleMove = throttle(handleMove, 50);
+    const handleMoveEnd = (e: konva.KonvaEventObject<DragEvent>) => {
         switch (e.target.getClassName()) {
             case 'Rect':
                 const rect = new konva.Rect(e.target.attrs);
@@ -32,7 +60,7 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     eId: e.target.id(),
                     data: rect
                 });
-                if (store.boardElementStore.undoRedoElement.length === transformerRef?.nodes().length) {
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length){
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
@@ -44,7 +72,7 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     eId: e.target.id(),
                     data: circle
                 });
-                if (store.boardElementStore.pushUndoRedoElement.length === transformerRef?.nodes().length) {
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length){
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
@@ -56,7 +84,7 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     eId: e.target.id(),
                     data: line
                 });
-                if (store.boardElementStore.pushUndoRedoElement.length === transformerRef?.nodes().length) {
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
@@ -64,13 +92,13 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
     }
     switch (item[1].getClassName()) {
         case 'Rect':
-            element = <Rect {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleEnd} onDragMove={throttleHandleMove}></Rect>
+            element = <Rect {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleMoveEnd} onDragMove={throttleHandleMove}></Rect>
             break;
         case 'Circle':
-            element = <Circle {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleEnd} onDragMove={throttleHandleMove}></Circle>
+            element = <Circle {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleMoveEnd} onDragMove={throttleHandleMove}></Circle>
             break;
         case 'Line':
-            element = <Line {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleEnd} onDragMove={throttleHandleMove}></Line>
+            element = <Line {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleMoveEnd} onDragMove={throttleHandleMove}></Line>
             break;
         default:
             element = null;

@@ -2,7 +2,7 @@ import { storeContext } from '../../stores/storeContext';
 import { useContext } from 'react';
 import Shape from './Shape';
 import { observer } from "mobx-react-lite";
-import { Text } from 'react-konva';
+import { Text ,Rect} from 'react-konva';
 const StaticLayer = observer(() => {
     const store = useContext(storeContext);
     return (
