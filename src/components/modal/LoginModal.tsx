@@ -72,7 +72,7 @@ const LoginModal = observer(() => {
             <div className={styles.loginBox}>
                 <div className={styles.left}
                     style={{
-                        backgroundImage: 'url(https://boardmix.cn/user/login/assets/board-dialog-left-bg.9c42b4d8.png)',
+                        backgroundImage: 'url(https://cdn.jsdelivr.net/gh/qiankun521/qiankun521@main/board2.png)',
                         backgroundSize: 'contain',
                         backgroundPosition: 'center'
                     }}

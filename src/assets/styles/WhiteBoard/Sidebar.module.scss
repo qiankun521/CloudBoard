@@ -133,22 +133,25 @@
 
         &:hover {
             background-color: #9178ff;
+            cursor: pointer;
         }
 
         .icon {
             height: 100%;
             font-size: 0.8rem;
             @extend %flex;
-            div{
+
+            div {
                 height: 100%;
                 @extend %flex;
                 font-size: 0.8rem;
                 padding: 0 10px;
             }
-            p{
+
+            p {
                 height: 100%;
                 @extend %flex;
-                font-size:0.9rem;
+                font-size: 0.9rem;
                 padding: 0 10px 0 0;
                 margin: 0;
                 vertical-align: center;
@@ -262,6 +265,7 @@
 
         &:hover {
             background-color: #f3f3f4;
+            cursor: pointer;
         }
 
         &::after {
@@ -282,6 +286,14 @@
 .disabled {
     color: #f3f3f4;
     background-color: #f0f0f1;
+
+    &:hover {
+        cursor: not-allowed;
+    }
+}
+
+.deActive {
+    color: #d0d2d4;
 
     &:hover {
         cursor: not-allowed;

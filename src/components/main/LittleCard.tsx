@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
-const LittleCard = ({ src, description, type }: { src: string, description: string, type: 'new' | 'templete' }) => {
+const LittleCard = ({ src, description, type, id }: { src: string, description: string, type: 'new' | 'templete', id?: string }) => {
     const store = useContext(storeContext);
     const navigate = useNavigate();
     const handleClick = () => {
@@ -13,7 +13,12 @@ const LittleCard = ({ src, description, type }: { src: string, description: stri
             }).catch((err) => {
                 message.error(err);
             });
-        } else {
+        } else if (type === 'templete') {
+            store.loginRegisterStore.createTemplateWhiteBoard(undefined, id)?.then((uuid) => {
+                navigate(`/whiteboard/${uuid}`);
+            }).catch((err) => {
+                message.error(err);
+            });
         }
     }
     return (

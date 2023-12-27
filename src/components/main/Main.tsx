@@ -14,7 +14,7 @@ import Recently from './Recently';
 import { create } from 'domain';
 const Main = observer(() => {
     const store = useContext(storeContext);
-    const [classify, setClassify] = useState(1);
+    const [classify, setClassify] = useState(1);//分类,1:协同白板,2:思维导图,3:流程图,4:项目看板
     const handleClick = (e: MouseEvent) => {
         e.preventDefault();//搜索modal
     }
@@ -105,7 +105,7 @@ const Main = observer(() => {
                                 style={{ backgroundColor: classify === 4 ? '#19dea6' : '#fff', color: '#000' }}
                                 size={46}
                             ></Avatar>
-                            <p>流程图</p>
+                            <p>项目看板</p>
                         </div>
                     </div>
                 </div>
@@ -122,33 +122,45 @@ const Main = observer(() => {
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-mindmap.png'
-                        description="思维导图"
+                        description="模板1"
                         type='templete'
+                        id='14'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
-                        description="流程图"
+                        description="模板2"
                         type='templete'
+                        id='15'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
-                        description="流程图"
+                        description="模板3"
                         type='templete'
+                        id='16'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
-                        description="流程图"
+                        description="模板4"
                         type='templete'
+                        id='17'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
-                        description="流程图"
+                        description="模板5"
                         type='templete'
+                        id='18'
                     ></LittleCard>
                     <LittleCard
                         src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
-                        description="流程图"
+                        description="模板6"
                         type='templete'
+                        id='19'
+                    ></LittleCard>
+                    <LittleCard
+                        src='https://cdn.boardmix.cn/app/images/scenecut/board-flow.png'
+                        description="模板7"
+                        type='templete'
+                        id='20'
                     ></LittleCard>
                 </div>
             </div>

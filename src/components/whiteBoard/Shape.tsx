@@ -1,5 +1,5 @@
 import konva from 'konva';
-import { Rect, Circle, Line } from 'react-konva';
+import { Rect, Circle, Line, Text } from 'react-konva';
 import { observer } from "mobx-react-lite";
 import { useContext } from 'react';
 import { storeContext } from '../../stores/storeContext';
@@ -47,6 +47,18 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
                 }
                 break;
+            case 'Text':
+                const text = new konva.Text(e.target.attrs);
+                store.boardElementStore.updateActive(e.target.id(), text);
+                store.boardElementStore.pushUndoRedoElement({
+                    type: 'temp',
+                    eId: e.target.id(),
+                    data: text
+                });
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement), 'temp');
+                }
+                break;
         }
     }
     const throttleHandleMove = throttle(handleMove, 50);
@@ -60,7 +72,7 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     eId: e.target.id(),
                     data: rect
                 });
-                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length){
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
@@ -72,7 +84,7 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     eId: e.target.id(),
                     data: circle
                 });
-                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length){
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
                 }
                 break;
@@ -83,6 +95,18 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
                     type: 'update',
                     eId: e.target.id(),
                     data: line
+                });
+                if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
+                    store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
+                }
+                break;
+            case 'Text':
+                const text = new konva.Text(e.target.attrs);
+                store.boardElementStore.updateActive(e.target.id(), text);
+                store.boardElementStore.pushUndoRedoElement({
+                    type: 'update',
+                    eId: e.target.id(),
+                    data: text
                 });
                 if (transformerRef && transformerRef.current && store.boardElementStore.undoRedoElement.length === transformerRef?.current.getNodes().length) {
                     store.boardElementStore.pushUndoRedoStack(toJS(store.boardElementStore.undoRedoElement));
@@ -99,6 +123,9 @@ const Shape = observer(({ item, transformerRef }: { item: [string, konva.Shape],
             break;
         case 'Line':
             element = <Line {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleMoveEnd} onDragMove={throttleHandleMove}></Line>
+            break;
+        case 'Text':
+            element = <Text {...item[1].getAttrs()} draggable={store.boardElementStore.status === 'select'} onDragEnd={handleMoveEnd} onDragMove={throttleHandleMove}></Text>
             break;
         default:
             element = null;

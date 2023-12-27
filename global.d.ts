@@ -20,7 +20,8 @@ declare type WhiteBoard = {
     all: SingleBoard[]
     mine: SingleBoard[]
     others: SingleBoard[]
-    collection?: SingleBoard[]
+    collection: SingleBoard[]
+    template: SingleBoard[]
 }
 declare type Status =
     'select' |//正在选择元素
@@ -34,7 +35,7 @@ declare type Status =
     'Spline' |
     'text';
 declare type UndoRedoElement = {
-    type: 'create' | 'delete' | 'update'|'temp',
+    type: 'create' | 'delete' | 'update' | 'temp' | 'save',
     eId: string,
     data: konva.Shape
 };

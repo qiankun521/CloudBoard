@@ -14,10 +14,8 @@ const WhiteBoardPage = observer(() => {
     const navigate = useNavigate();
     const params = new URLSearchParams(searchParams).get('invite');//邀请码
     useEffect(() => {
-        if (!store.loginRegisterStore.islogged) {
+        if (!store.loginRegisterStore.islogged || store.websocketStore.isconnected) {
             navigate('/home');
-        } else if (store.websocketStore.isconnected) {
-            return;
         }
         else {
             if (boardId && isUuidV4(boardId)) {

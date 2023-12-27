@@ -75,10 +75,28 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
         download(dataURL, 'whiteBoard.png', 'image/png');
     }
     const handleUndo = () => {
-
+        if (store.boardElementStore.stackIndex < 1) return;
+        store.boardElementStore.undo();
     }
     const handleRedo = () => {
-        
+        if (store.boardElementStore.stackIndex >= store.boardElementStore.undoRedoStack.length - 1) return;
+        store.boardElementStore.redo();
+    }
+    const handleShare = () => {
+        navigator.clipboard.writeText(window.location.href);
+        message.success('已复制到剪贴板');
+    }
+    const handleSave = () => {
+        if (!store.loginRegisterStore.islogged) {
+            store.modalStore.setShowLoginModal(true);
+            message.error('请先登录');
+            return;
+        }
+        store.websocketStore.sendMessage([{
+            type: 'save',
+            eId: '',
+            data: null
+        }])
     }
     return (
         <>
@@ -96,7 +114,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                                 </div>
                             }
                         >
-                            <RxCursorArrow className={styles.icon} />
+                            <RxCursorArrow className={`${styles.icon}`} />
                         </Popover>
                         :
                         <Popover
@@ -114,13 +132,13 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         </Popover>}
                 </div>
                 <div className={styles.single} onClick={handleStageScaleShrink}>
-                    <CiCircleMinus className={styles.icon} />
+                    <CiCircleMinus className={`${styles.icon} ${styles.deActive}`} />
                 </div>
                 <div className={styles.single} style={{ fontSize: '0.8rem' }}>
                     {store.boardElementStore.scaleX * 100}%
                 </div>
                 <div className={styles.single} onClick={handleStageScaleGrow}>
-                    <CiCirclePlus className={styles.icon} />
+                    <CiCirclePlus className={`${styles.icon} ${styles.deActive}`} />
                 </div>
             </aside>
             <aside className={styles.left}>
@@ -129,7 +147,6 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                     onClick={() => {
                         setSelect('rect');
                         store.boardElementStore.changeStatus('rect');
-
                     }}
                 >
                     <Popover
@@ -237,7 +254,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                 </div>
             </aside>
             <aside className={styles.bottomLeft}>
-                <div className={`${styles.single}`}>
+                <div className={`${styles.single}`} onClick={handleUndo}>
                     <Popover
                         content={
                             <div
@@ -250,10 +267,10 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         }
                         placement="top"
                     >
-                        <RiArrowGoBackFill className={styles.icon} />
+                        <RiArrowGoBackFill className={`${styles.icon} ${store.boardElementStore.stackIndex < 1 && styles.deActive}`} />
                     </Popover>
                 </div>
-                <div className={styles.single}>
+                <div className={styles.single} onClick={handleRedo}>
                     <Popover
                         content={
                             <div
@@ -266,7 +283,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         }
                         placement="top"
                     >
-                        <RiArrowGoForwardFill className={styles.icon} />
+                        <RiArrowGoForwardFill className={`${styles.icon} ${store.boardElementStore.stackIndex >= store.boardElementStore.undoRedoStack.length - 1 && styles.deActive}`} />
                     </Popover>
                 </div>
             </aside>
@@ -323,7 +340,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         <SlPicture className={styles.icon} />
                     </Popover>
                 </div>
-                <div className={styles.single}>
+                <div className={styles.single} onClick={handleSave}>
                     <Popover
                         content={
                             <div
@@ -354,7 +371,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         }
                         placement="bottom"
                     >
-                        <IoChatboxOutline className={styles.icon} />
+                        <IoChatboxOutline className={`${styles.icon} ${styles.deActive}`} />
                     </Popover>
                 </div>
                 <div className={styles.single}>
@@ -370,7 +387,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         }
                         placement="bottom"
                     >
-                        <PiMicrophoneStage className={styles.icon} />
+                        <PiMicrophoneStage className={`${styles.icon} ${styles.deActive}`} />
                     </Popover>
                 </div>
                 <div className={styles.text}>
@@ -378,7 +395,7 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
                         style={{ padding: '0' }}
                     ></Avatar>
                 </div>
-                <div className={styles.button}>
+                <div className={styles.button} onClick={handleShare}>
                     <div className={styles.icon}>
                         <div><IoPersonAddOutline /></div>
                         <p>共享</p>

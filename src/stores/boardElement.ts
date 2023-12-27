@@ -1,4 +1,4 @@
-import { makeAutoObservable } from "mobx";
+import { makeAutoObservable, toJS } from "mobx";
 import { Store } from "./index";
 import konva from 'konva';
 import { Status } from '../../global'
@@ -27,6 +27,7 @@ class BoardElementStore {
     }//创建元素
     createAdvancedElement: number[] = []
     status: Status = 'select'//当前状态
+    textValue: string = ''//创建文本元素时的文本框的值
     moveFlag: boolean = false//是否移动,解决mousemove在不想移动时也触发的问题
     createFlag: boolean = false//是否创建,解决mousemove在不想创建时也触发的问题,如曲线
     scaleX: number = 1//缩放比例
@@ -158,6 +159,7 @@ class BoardElementStore {
         }
     }
     changeStatus(status: Status) {
+        this.updateCreate();
         this.status = status;
     }
     updateScale(scaleX: number, scaleY: number) {
@@ -177,7 +179,7 @@ class BoardElementStore {
         this.undoRedoElement = [];
         console.log('push undo redo stack', this.stackIndex, this.undoRedoStack.length)
     }
-    popUndoRedoStack() {
+    undo() {
         if (this.stackIndex - 1 < 0) return;
         const elements = this.undoRedoStack[this.stackIndex];
         for (const element of elements) {
@@ -185,15 +187,30 @@ class BoardElementStore {
             switch (element.type) {
                 case 'create':
                     delete this.activeElement[element.eId];
+                    this.pushUndoRedoElement({
+                        type: 'delete',
+                        eId: element.eId,
+                        data: element.data
+                    })
                     break;
                 case 'delete':
                     this.activeElement[element.eId] = element.data;
+                    this.pushUndoRedoElement({
+                        type: 'create',
+                        eId: element.eId,
+                        data: element.data
+                    })
                     break;
                 case 'update':
                     for (let i = this.stackIndex - 1; i >= 0; i--) {
                         for (const item of this.undoRedoStack[i]) {
                             if (item.eId === element.eId) {
                                 this.activeElement[element.eId] = item.data;
+                                this.pushUndoRedoElement({
+                                    type: 'update',
+                                    eId: element.eId,
+                                    data: item.data
+                                })
                                 flag = true;
                                 break;
                             }
@@ -203,24 +220,63 @@ class BoardElementStore {
                     if (!flag) console.error('undo redo error');
                     break;
                 case 'temp':
-                    for (let i = this.stackIndex - 1; i >= 0; i--) {
-                        for (const item of this.undoRedoStack[i]) {
-                            if (item.eId === element.eId) {
-                                this.activeElement[element.eId] = item.data;
-                                flag = true;
-                                break;
-                            }
-                        }
-                        if (flag) break;
-                    }
-                    if (!flag) console.error('undo redo error');
+                    console.error('undo redo error');
                     break;
                 default:
                     console.error('undo redo error');
                     break;
             }
         }
+        this.rootStore.websocketStore.sendMessage(toJS(this.undoRedoElement));
+        this.undoRedoElement = [];
         this.stackIndex--;
+    }
+    redo() {
+        if (this.stackIndex + 1 >= this.undoRedoStack.length) return;
+        const elements = this.undoRedoStack[this.stackIndex + 1];
+        for (const element of elements) {
+            switch (element.type) {
+                case 'create':
+                    this.activeElement[element.eId] = element.data;
+                    this.pushUndoRedoElement({
+                        type: 'create',
+                        eId: element.eId,
+                        data: element.data
+                    })
+                    break;
+                case 'delete':
+                    delete this.activeElement[element.eId];
+                    this.pushUndoRedoElement({
+                        type: 'delete',
+                        eId: element.eId,
+                        data: element.data
+                    })
+                    break;
+                case 'update':
+                    this.activeElement[element.eId] = element.data;
+                    this.pushUndoRedoElement({
+                        type: 'update',
+                        eId: element.eId,
+                        data: element.data
+                    })
+                    break;
+                case 'temp':
+                    console.error('undo redo error');
+                    break;
+                default:
+                    console.error('undo redo error');
+                    break;
+            }
+        }
+        this.rootStore.websocketStore.sendMessage(toJS(this.undoRedoElement));
+        this.undoRedoElement = [];
+        this.stackIndex++;
+    }
+    pushUndoRedoElement(element: UndoRedoElement) {
+        this.undoRedoElement.push(element);
+    }
+    setTextValue(value: string) {
+        this.textValue = value;
     }
     reset() {
         this.undoRedoStack = [];
@@ -228,9 +284,6 @@ class BoardElementStore {
         this.stackIndex = -1;
         this.staticElement = {};
         this.activeElement = {};
-    }
-    pushUndoRedoElement(element: UndoRedoElement) {
-        this.undoRedoElement.push(element);
     }
 }
 export default BoardElementStore;

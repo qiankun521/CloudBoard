@@ -6,6 +6,7 @@ import Shape from './Shape';
 import { observer } from "mobx-react-lite";
 import { KonvaEventObject } from 'konva/lib/Node';
 import { Text } from 'react-konva';
+import { Html } from 'react-konva-utils';
 import isUuidV4 from '../../utils/isUuidv4';
 import throttle from '../../utils/throttle';
 import { v4 } from 'uuid';
@@ -58,20 +59,28 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                     break;
                 case 'rect':
                     e.evt.preventDefault();
-                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
+                    store.boardElementStore.updateCreate({ x: clientX as number, y: clientY as number });
                     break;
                 case 'circle':
                     e.evt.preventDefault();
-                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
+                    store.boardElementStore.updateCreate({ x: clientX as number, y: clientY as number });
                     break;
                 case 'line':
                     e.evt.preventDefault();
-                    store.boardElementStore.updateCreate({ x: (clientX as number), y: clientY as number });
+                    store.boardElementStore.updateCreate({ x: clientX as number, y: clientY as number });
                     break;
                 case 'Spline':
                     e.evt.preventDefault();
                     store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
                     store.boardElementStore.createFlag = true;
+                    break;
+                case 'text':
+                    e.evt.preventDefault();
+                    store.boardElementStore.setTextValue('');
+                    store.boardElementStore.updateCreate({ x: clientX as number, y: clientY as number });
+                    break;
+                default:
+                    console.log('create error');
                     break;
             }
         }
@@ -127,7 +136,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                         store.boardElementStore.updateCreateAdvanced([clientX as number, clientY as number]);
                     }
                     break;
-
+                case 'text':
+                    break;
             }
         }
         const throttleHandleMove = throttle(handleMove, 30);
@@ -148,6 +158,9 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                     break;
                 case 'move':
                     store.boardElementStore.moveFlag = false;
+                    break;
+                case 'delete':
+                    //TODO 删除元素
                     break;
                 case 'rect':
                     const id = v4();
@@ -244,6 +257,8 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                         data: store.boardElementStore.activeElement[splineId].clone()
                     }])
                     break;
+                case 'text':
+                    break;
             }
         }
         if (stageRef && stageRef.current) {
@@ -311,6 +326,31 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
             }
         });
     }
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            const textId = v4();
+            const text = new konva.Text({
+                x: store.boardElementStore.createElement.lastX,
+                y: store.boardElementStore.createElement.lastY,
+                text: store.boardElementStore.textValue,
+                id: textId,
+                fontSize: 18,
+                fontFamily: 'Calibri',
+                fill: '#555',
+                draggable: true
+            });
+            store.boardElementStore.updateCreate();
+            store.boardElementStore.addStatic(textId, text);
+            store.boardElementStore.changeStaticToActive(textId);
+            transformerRef.current?.nodes([text]);
+            store.boardElementStore.pushUndoRedoStack([{
+                type: 'create',
+                eId: textId,
+                data: text.clone()
+            }]);
+            store.boardElementStore.setTextValue('');
+        }
+    }
     return (
         <>
             {store.boardElementStore.active.length > 0 &&
@@ -322,6 +362,25 @@ const ActiveLayer = observer(({ scrollRef, stageRef }: { scrollRef: React.RefObj
                 onTransform={throttlehandleTransform}
                 onTransformEnd={handleTransformEnd}
             ></Transformer>
+            {
+                store.boardElementStore.status === 'text' && store.boardElementStore.createElement.lastX !== 0 && store.boardElementStore.createElement.lastY !== 0 &&
+                <Html
+                >
+                    <input
+                        style={{
+                            position: 'absolute',
+                            top: `${store.boardElementStore.createElement.lastY}px`,
+                            left: `${store.boardElementStore.createElement.lastX}px`,
+                            zIndex: 1000,
+                        }}
+                        value={store.boardElementStore.textValue}
+                        onChange={(e) => store.boardElementStore.setTextValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        autoFocus
+                    ></input>
+                </Html>
+                //创建文字元素需要input输入框
+            }
         </>
     );
 });

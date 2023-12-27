@@ -12,6 +12,8 @@ class LoginRegisterStore {
         all: [],
         mine: [],
         others: [],
+        collection: [],
+        template: [],
     }
     constructor(rootStore: Store) {
         makeAutoObservable(this);
@@ -223,10 +225,48 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
-            } else if(res.status===401){
+            } else if (res.status === 401) {
                 this.logout();
                 throw new Error('登录过期，请重新登录');
-            }else {
+            } else {
+                throw new Error('创建白板失败')
+            }
+        }).then(async (res) => {
+            switch (res.code) {
+                case 0:
+                    message.error(res.msg);
+                    break;
+                case 1:
+                    message.success('创建成功');
+                    await this.getWhiteBoard();
+                    return res.data.uuid;
+                default:
+                    throw new Error('网络故障');
+            }
+        }).catch((err) => {
+            return err;
+        })
+    }
+    createTemplateWhiteBoard(name?: string, id?: string) {
+        if (!id || !this.info.token) return;
+        if (!name) name = '未命名白板';
+        return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/addByTemplate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Token': this.info.token,
+            },
+            body: JSON.stringify({
+                name: name,
+                id: id
+            })
+        }).then((res) => {
+            if (res.status === 200) {
+                return res.json()
+            } else if (res.status === 401) {
+                this.logout();
+                throw new Error('登录过期，请重新登录');
+            } else {
                 throw new Error('创建白板失败')
             }
         }).then(async (res) => {
@@ -262,10 +302,10 @@ class LoginRegisterStore {
         }).then((res) => {
             if (res.status === 200) {
                 return res.json()
-            } else if(res.status===401){
+            } else if (res.status === 401) {
                 this.logout();
                 throw new Error('登录过期，请重新登录');
-            }else {
+            } else {
                 throw new Error('加入白板失败')
             }
         }).then(async (res) => {
