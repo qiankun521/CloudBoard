@@ -1,13 +1,14 @@
 import './App.css';
-import WhiteBoardPage from './components/WhiteBoardPage';
-import MainPage from './components/MainPage';
 import store from './stores';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { storeContext } from './stores/storeContext';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
-import NotFound from './components/NotFound';
-import AllModal from './components/modal/AllModal';
+import { useEffect, Suspense } from 'react';
+import React from 'react';
+const WhiteBoardPage = React.lazy(() => import('./components/WhiteBoardPage'));
+const MainPage = React.lazy(() => import('./components/MainPage'));
+const NotFoundPage = React.lazy(() => import('./components/NotFound'));
+const AllModal = React.lazy(() => import('./components/modal/AllModal'));
 const RedirectToHome = () => {
   const navigate = useNavigate();
   useEffect(() => {
@@ -21,10 +22,22 @@ function App() {
       <storeContext.Provider value={store}>
         <AllModal></AllModal>
         <Routes>
-          <Route path='/' element={<RedirectToHome></RedirectToHome>}></Route>
-          <Route path='/home/*' element={<MainPage></MainPage>}></Route>
-          <Route path='/whiteboard/:id' element={<WhiteBoardPage></WhiteBoardPage>}></Route>
-          <Route path='*' element={<NotFound></NotFound>}></Route>
+          <Route path='/' element={
+            <Suspense fallback={<div>loading...</div>}>
+              <RedirectToHome></RedirectToHome>
+            </Suspense>
+          }></Route>
+          <Route path='/home/*' element={
+            <Suspense fallback={<div>loading...</div>}>
+              <MainPage></MainPage>
+            </Suspense>
+          }></Route>
+          <Route path='/whiteboard/:id' element={
+            <Suspense fallback={<div>loading...</div>}>
+              <WhiteBoardPage></WhiteBoardPage>
+            </Suspense>
+          }></Route>
+          <Route path='*' element={<NotFoundPage></NotFoundPage>}></Route>
         </Routes>
       </storeContext.Provider>
     </BrowserRouter>

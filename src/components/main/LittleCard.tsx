@@ -24,7 +24,7 @@ const LittleCard = ({ src, description, type, id }: { src: string, description: 
     return (
         <section className={styles.cardContainer} onClick={handleClick}>
             <div className={styles.card}>
-                <img src={src} alt="照片" style={{ maxHeight: '80px' }} />
+                <img src={src} alt="照片" style={{ maxHeight: '80px' ,maxWidth:'100%'}} />
             </div>
             <p>{description}</p>
         </section>

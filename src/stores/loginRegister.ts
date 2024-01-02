@@ -12,8 +12,6 @@ class LoginRegisterStore {
         all: [],
         mine: [],
         others: [],
-        collection: [],
-        template: [],
     }
     constructor(rootStore: Store) {
         makeAutoObservable(this);
@@ -153,6 +151,7 @@ class LoginRegisterStore {
             runInAction(() => {
                 this.whiteBoard.others = res[0].data;
                 this.whiteBoard.mine = res[1].data;
+                //this.whiteBoard.template = res[2].data;
                 this.whiteBoard.all = [];
                 if (this.whiteBoard.mine) this.whiteBoard.all.push(...this.whiteBoard.mine);
                 if (this.whiteBoard.others) this.whiteBoard.all.push(...this.whiteBoard.others);
@@ -206,6 +205,26 @@ class LoginRegisterStore {
             message.error(err.message);
         })
     }
+    // getWhiteBoardTemplate() {
+    //     if (!this.info.token) return Promise.reject(new Error('未登录'));
+    //     return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/listTemplate`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Token': this.info.token
+    //         },
+    //     }).then((res) => {
+    //         if (res.status === 200) {
+    //             return res.json()
+    //         } else if (res.status === 401) {
+    //             this.logout();
+    //             throw new Error('登录过期，请重新登录');
+    //         } else {
+    //             throw new Error('获取白板失败')
+    //         }
+    //     }).catch((err) => {
+    //         message.error(err.message);
+    //     })
+    // }
     createWhiteBoard(name?: string) {
         if (!this.info.token || !this.islogged) {
             message.error('未登录');
@@ -248,7 +267,11 @@ class LoginRegisterStore {
         })
     }
     createTemplateWhiteBoard(name?: string, id?: string) {
-        if (!id || !this.info.token) return;
+        if (!this.info.token || !this.islogged) {
+            message.error('未登录');
+            this.rootStore.modalStore.setShowLoginModal(true);
+            return;
+        }
         if (!name) name = '未命名白板';
         return fetch(`${process.env.REACT_APP_REQUEST_URL}/room/addByTemplate`, {
             method: 'POST',

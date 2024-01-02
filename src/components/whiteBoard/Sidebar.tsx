@@ -83,7 +83,9 @@ const Sidebar = observer(({ scrollRef, stageRef }: { scrollRef: HTMLDivElement |
         store.boardElementStore.redo();
     }
     const handleShare = () => {
-        navigator.clipboard.writeText(window.location.href);
+        const start = window.location.href.lastIndexOf('/');
+        const str = window.location.href.slice(start + 1);
+        navigator.clipboard.writeText(str);
         message.success('已复制到剪贴板');
     }
     const handleSave = () => {

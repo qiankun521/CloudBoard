@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { SelectInfo } from 'rc-menu/lib/interface';
 import { MouseEvent } from 'react';
 import { observer } from 'mobx-react';
-import logo from '../../assets/photos/logo.png';
+import logo from '../../assets/photos/Logo.webp';
 const items = [
     {
         label: '首页',

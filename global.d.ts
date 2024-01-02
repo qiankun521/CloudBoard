@@ -20,8 +20,8 @@ declare type WhiteBoard = {
     all: SingleBoard[]
     mine: SingleBoard[]
     others: SingleBoard[]
-    collection: SingleBoard[]
-    template: SingleBoard[]
+    collection?: SingleBoard[]
+    template?: SingleBoard[]
 }
 declare type Status =
     'select' |//正在选择元素
